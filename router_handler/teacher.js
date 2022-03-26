@@ -114,11 +114,15 @@ exports.changStudentInfo = (req,res) =>{
     });
 }
 exports.addHomeWork=(req,res)=>{
+    const nowDate = new Date();
+    const end_time = tools.addDate(nowDate,parseInt(req.body.hw_deadline),'days');
     const homeworkInfo = {
         work_id:parseInt(req.body.hw_id),
         work_name:req.body.hw_name,
         work_details:req.body.hw_details,
-        work_deadline:req.body.hw_deadline
+        work_deadline:req.body.hw_deadline,
+        work_time:nowDate,
+        end_time:end_time,
     };
     const sql = 'select*from homework where work_id = ?';
     const addSql = 'insert into homework set ?';
@@ -143,7 +147,7 @@ exports.addHomeWork=(req,res)=>{
 exports.getHomeWork = (req,res) =>{
     let pageNum = parseInt(req.query.pageNum)-1;
     let pageSize = parseInt(req.query.pageSize);
-    const slSql = 'select * from homework limit ?,?';
+    const slSql = 'select * from homework order by work_time desc limit ?,?';
     const sql = 'select count(*) as total from homework ';
     db.query(slSql,[pageNum*pageSize,pageSize],(err,results)=>{
         if(err){

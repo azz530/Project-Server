@@ -9,6 +9,7 @@ const config = require('./config.js');
 const expressJWT = require('express-jwt');
 const port = 3000;
 app.use(express.static('uploads'));
+app.use(express.static('homeworks'));
 // app.all("*",(req,res,next)=>{
 //     res.header('Access-Control-Allow-Origin',"*");
 //     res.header('Access-Control-Allow-Headers','Content-Type,Authorization');
@@ -34,7 +35,7 @@ app.use((req,res,next)=>{
     next();
 });
 //解析token的中间件
-app.use(expressJWT({secret: config.jwtSecretKey,algorithms:['HS256']}).unless({path:[/^\/api/,/^\/teacher/,/^\/admin/]}));
+app.use(expressJWT({secret: config.jwtSecretKey,algorithms:['HS256']}).unless({path:[/^\/api/]}));
 app.use('/api',userRouter);
 app.use('/my',userinfoRouter);
 app.use('/teacher',teacherRouter);

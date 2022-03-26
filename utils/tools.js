@@ -8,7 +8,16 @@ function formatDate (dateStr,type){ //格式('yyyy-mm-dd')
     }
     
 }
+function addDate (oldDate,days,type){
+    if((oldDate!==null||oldDate!=='')&&(days!==null||days!=='')&&(type!==''||type!==null)){
+        let newDate = moment(oldDate).add(days,type).toDate();
+        console.log(newDate);
+        return newDate; 
+    } else {
+        return;
+    }
+}
 
 module.exports = {
-    formatDate
+    formatDate,addDate
 }

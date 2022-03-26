@@ -74,10 +74,8 @@ exports.getGradeInfo = (req,res) =>{
             return res.cc('查询失败',400);
         } else {
             return res.send({
-                meta:{
-                    status:200,
-                    message:'查询成功',
-                },
+                status:200,
+                message:'查询成功',
                 data:results
             })
         }
@@ -98,11 +96,9 @@ exports.getClassInfo =(req,res) =>{
                 if(error){
                     return res.cc(error.message);
                 } else {
-                    res.send({
-                        meta:{
-                            status:200,
-                            message:'查询成功'
-                        },
+                    res.send({     
+                        status:200,
+                        message:'查询成功', 
                         data:results,
                         total:total[0]['total'],
                     })
@@ -127,10 +123,8 @@ exports.getTeacherInfo = (req,res) =>{
                     return res.cc(error.message);
                 } else {
                     return res.send({
-                        meta:{
-                            status:200,
-                            message:'查询成功' 
-                        },
+                        status:200,
+                        message:'查询成功',
                         data:results,
                         total:total[0]['total']
                     })
@@ -197,10 +191,8 @@ exports.getCourse = (req,res) =>{
             return res.cc('查询失败',400);
         } else {
             return res.send({
-                meta:{
-                    status:200,
-                    message:'查询成功',
-                },
+                status:200,
+                message:'查询成功',
                 data:results
             })
         }
@@ -261,10 +253,8 @@ exports.getCourseInfo = (req,res) =>{
                     return res.cc(error.message);
                 } else {
                     return res.send({
-                        meta:{
-                            status:200,
-                            message:'查询成功',
-                        },
+                        status:200,
+                        message:'查询成功',
                         data:results,
                         total:total[0]['total']
                     })
@@ -300,47 +290,6 @@ exports.delCourse = (req,res) =>{
             return res.cc('删除失败',400);
         } else {
             return res.cc('删除成功',200);
-        }
-    })
-}
-exports.uploadAvatar = (req,res)=>{
-    const url = 'http://localhost:3000/' + req.file.filename;
-    const id = req.body.id;
-    const sql = 'update users set avatar=? where id=?'
-    db.query(sql,[url,id],(err,results)=>{
-        if(err){
-            return res.cc(err.message);
-        } else if(results.affectedRows !== 1){
-            return res.cc('上传头像失败',500);
-        } else {
-            return res.send({
-                meta:{
-                    status:200,
-                    message:'上传成功'
-                },
-                avatarUrl:url
-            })
-        }
-    })
-}
-exports.getUserLog = (req,res) =>{
-    const sql = 'select*from admin_log';
-    db.query(sql,(err,results)=>{
-        if(err){
-            return res.cc(err.message);
-        } else if(results.length<0){
-            return res.cc('查询失败',400);
-        } else {
-            for(let i=0;i<results.length;i++){
-                results[i].log_time = tools.formatDate(results[i].log_time,'YYYY-MM-DD');
-            }
-            return res.send({
-                meta:{
-                    status:200,
-                    message:'查询成功',
-                },
-                data:results,
-            })
         }
     })
 }
