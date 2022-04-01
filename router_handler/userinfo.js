@@ -19,9 +19,10 @@ exports.getUserInfo = (req, res) => {
         }
     });
 }
-exports.uploadAvatar = (req, res) => {
+exports.uploadAvatar = async (req, res) => {
     const url = 'http://localhost:3000/' + req.file.filename;
     const id = req.body.id;
+    console.log('sssssssaaaaaaaaaaaaaaaas');
     const sql = 'update users set avatar=? where id=?'
     db.query(sql, [url, id], (err, results) => {
         if (err) {
@@ -151,65 +152,46 @@ exports.commitIDResult = async (req, res) => {
     })
 }
 exports.getNotice = async (req, res) => {
-    const id = parseInt(req.query.id);
-    const selectsql = 'select class_id from student right join users on users.identity_id = student.student_id where id=?';
-    const sql = 'select notice_id,notice_theme,notice_details,notice_time,teacher_name from class_notice t1 left join teacher t2 on t1.teacher_id = t2.teacher_id where notice_status=1 and class_id = ? order by t1.notice_time desc limit 0,5'
-    db.query(selectsql, id, (err, class_id) => {
-        if (err) {
-            return res.cc(err.message);
-        } else if (class_id.length < 0) {
+    const student_id = parseInt(req.query.student_id);
+    const sql = 'select t1.notice_id,t1.notice_theme,t1.notice_details,t1.notice_time,t2.teacher_name from class_notice t1 left join teacher t2 on t1.teacher_id = t2.teacher_id join course t3 on t2.course_id = t3.course_id join score t4 on t3.course_id = t4.course_id  where t1.notice_status=1 and t4.student_id = ? order by t1.notice_time desc limit 0,5';
+    db.query(sql, student_id, (error, results) => {
+        if (error) {
+            return res.cc(error.message);
+        } else if (results.length < 0) {
             return res.cc('查询失败', 400);
         } else {
-            let classid = class_id[0].class_id;
-            db.query(sql, classid, (error, results) => {
-                if (error) {
-                    return res.cc(error.message);
-                } else if (results.length < 0) {
-                    return res.cc('查询失败', 400);
-                } else {
-                    for (let i = 0; i < results.length; i++) {
-                        results[i].details_time = tools.formatDate(results[i].notice_time, 'YYYY-MM-DD hh:mm:ss');
-                        results[i].notice_time = tools.formatDate(results[i].notice_time, 'YYYY-MM-DD');
-                    }
-                    return res.send({
-                        status: 200,
-                        message: '查询成功',
-                        data: results
-                    })
-                }
+            for (let i = 0; i < results.length; i++) {
+                results[i].details_time = tools.formatDate(results[i].notice_time, 'YYYY-MM-DD hh:mm:ss');
+                results[i].notice_time = tools.formatDate(results[i].notice_time, 'YYYY-MM-DD');
+            }
+            return res.send({
+                status: 200,
+                message: '查询成功',
+                data: results
             })
         }
     })
 
+
 }
 exports.getHomeWork = async (req, res) => {
-    const id = parseInt(req.query.id);
-    const selectsql = 'select class_id from student right join users on users.identity_id = student.student_id where id=?';
-    const sql = 'select t1.work_id,t1.work_name,t1.work_deadline,t1.work_time,t1.end_time,t1.work_details,t2.teacher_name from homework t1 left join teacher t2 on t1.teacher_id = t2.teacher_id where t1.work_status =1 and t1.class_id = ? order by t1.work_time desc'
-    db.query(selectsql, id, (error, class_id) => {
-        if (error) {
-            return res.cc(error.message);
-        } else if (class_id.length < 0) {
+    const student_id = parseInt(req.query.student_id);
+    const sql = 'select t1.work_id,t1.work_name,t1.work_deadline,t1.work_time,t1.end_time,t1.work_details,t2.teacher_name,t3.course_name from homework t1 left join teacher t2 on t1.teacher_id = t2.teacher_id join course t3 on t2.course_id = t3.course_id join score t4 on t3.course_id = t4.course_id where t4.student_id = ? and t1.work_status = 1 order by t1.work_time desc';
+    db.query(sql, student_id, (err, results) => {
+        if (err) {
+            return res.cc(err.message);
+        } else if (results.length < 0) {
             return res.cc('查询失败', 400);
         } else {
-            let classId = class_id[0].class_id;
-            db.query(sql, classId, (err, results) => {
-                if (err) {
-                    return res.cc(err.message);
-                } else if (results.length < 0) {
-                    return res.cc('查询失败', 400);
-                } else {
-                    for (let i = 0; i < results.length; i++) {
-                        results[i].details_time = tools.formatDate(results[i].work_time, 'YYYY-MM-DD hh:mm:ss');
-                        results[i].work_time = tools.formatDate(results[i].work_time, 'YYYY-MM-DD');
-                        results[i].end_time = tools.formatDate(results[i].end_time, 'YYYY-MM-DD');
-                    }
-                    return res.send({
-                        status: 200,
-                        message: '查询成功',
-                        data: results
-                    })
-                }
+            for (let i = 0; i < results.length; i++) {
+                results[i].details_time = tools.formatDate(results[i].work_time, 'YYYY-MM-DD hh:mm:ss');
+                results[i].work_time = tools.formatDate(results[i].work_time, 'YYYY-MM-DD');
+                results[i].end_time = tools.formatDate(results[i].end_time, 'YYYY-MM-DD');
+            }
+            return res.send({
+                status: 200,
+                message: '查询成功',
+                data: results
             })
         }
     })
@@ -258,18 +240,44 @@ exports.commitHomeWork = async (req, res) => {
         work_content,
     }
     const sql = 'insert into workinfo set ?'
+    const sql1 = 'update homework set finish_num = (select count(*) from workinfo where work_status = 1 and work_id = ?) where work_id = ?'
     db.query(sql, work_info, (err, results) => {
         if (err) {
             return res.cc(err.message);
         } else if (results.affectedRows !== 1) {
             return res.cc('插入数据失败', 400);
         } else {
-            console.log(results);
-            return res.send({
-                status: 200,
-                message: '插入成功',
-                picurl: work_pic,
+            db.query(sql1, [work_id, work_id], (error, result) => {
+                if (error) {
+                    return res.cc(error.message);
+                } else if (result.affectedRows !== 1) {
+                    return res.cc('更新作业完成人数失败', 400);
+                } else {
+                    return res.send({
+                        status: 200,
+                        message: '插入成功',
+                        picurl: work_pic,
+                    })
+                }
             })
         }
     })
+}
+exports.getScoreData = async (req, res) => {
+    const student_id = parseInt(req.query.student_id);
+    const sql2 = 'select t1.score,t2.course_name from score t1 left join course t2 on t1.course_id = t2.course_id where t1.student_id = ?';
+    db.query(sql2, student_id, (err, results) => {
+        if (err) {
+            return res.cc(err.message);
+        } else if (results.length < 0) {
+            return res.cc('查询失败', 400);
+        } else {
+            return res.send({
+                status: 200,
+                message: '查询成功',
+                data: results,
+            })
+        }
+    })
+
 }

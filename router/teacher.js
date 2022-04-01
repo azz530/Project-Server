@@ -15,7 +15,9 @@ router.delete('/delHomeWork',teacher.delHomeWork);
 
 
 router.get('/getStdScore',teacher.getStdScore);
-router.get('/getCourseStdScore',teacher.getCourseStdScore);
+router.get('/getClass',teacher.getClass);
+router.get('/getClassStdScore',teacher.getClassStdScore);
+router.put('/changeStdScore',teacher.changeStdScore);
 
 
 router.get('/getNotice',teacher.getNotice);
@@ -24,5 +26,5 @@ router.put('/commitNotice',teacher.commitNotice);
 router.delete('/delNotice',teacher.delNotice);
 router.put('/changeNotice',teacher.changeNotice);
 
-
+router.get('/getClassScore',teacher.getClassScore);
 module.exports = router;

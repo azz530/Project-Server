@@ -1,12 +1,14 @@
 const db = require('../db/index.js');
 const tools = require('../utils/tools.js');
+
 exports.getStudentListByClass = (req,res)=>{
-    const classes = req.query.classes;
+    const class_id = req.query.class_id;
+    const teacher_id = req.query.teacher_id;
     let pageNum = parseInt(req.query.pageNum)-1;
     let pageSize = parseInt(req.query.pageSize);
-    const allSql = 'select count(*) as total from student where classes = ? ';
-    const slSql = 'select * from student where classes = ? limit ?,?';
-    db.query(slSql,[classes,pageNum*pageSize,pageSize],(err,results)=>{
+    const allSql = 'select count(*) as total,t1.student_id,t1.student_name,t1.sex,t4.class_name,t1.student_check,t1.birthday,t1.address from student t1 left join score t2 on t1.student_id = t2.student_id join teacher t3 on t2.course_id = t3.course_id join class t4 on t1.class_id = t4.class_id where t3.teacher_id = ? and t1.class_id=?';
+    const slSql = 'select t1.student_id,t1.student_name,t1.sex,t4.class_name,t1.student_check,t1.birthday,t1.address from student t1 left join score t2 on t1.student_id = t2.student_id join teacher t3 on t2.course_id = t3.course_id join class t4 on t1.class_id = t4.class_id where t3.teacher_id = ? and t1.class_id=? limit ?,?';
+    db.query(slSql,[teacher_id,class_id,pageNum*pageSize,pageSize],(err,results)=>{
         if(err) {
             return res.cc(err.message);
         } else if(results.length ==0 ){
@@ -19,7 +21,7 @@ exports.getStudentListByClass = (req,res)=>{
                     results[i].student_check = true;
                 }
             }
-            db.query(allSql,classes,(error,total) =>{
+            db.query(allSql,[teacher_id,class_id],(error,total) =>{
                 if(error){
                     return res.cc(error.message);
                 } else if(results == 0) {
@@ -36,13 +38,30 @@ exports.getStudentListByClass = (req,res)=>{
         }
     })
 }
-
+exports.getClass=(req,res)=>{
+    const teacher_id = req.query.teacher_id;
+    const sql = 'select distinct t4.class_id,t4.class_name from student t1 left join score t2 on t1.student_id = t2.student_id join teacher t3 on t2.course_id = t3.course_id join class t4 on t1.class_id = t4.class_id where t3.teacher_id = ?';
+    db.query(sql,teacher_id,(err,results)=>{
+        if(err){
+            return res.cc(err.message);
+        } else if(results.length<0){
+            return res.cc('查询失败',400);
+        } else {
+            return res.send({
+                status:200,
+                message:'查询成功',
+                data: JSON.parse(JSON.stringify(results))
+            })
+        }
+    })
+}
 exports.getStudentList = (req,res)=>{
     let pageNum = parseInt(req.query.pageNum)-1;
     let pageSize = parseInt(req.query.pageSize);
-    const slSql = 'select * from student limit ?,?';
-    const allSql = 'select count(*) as total from student';
-    db.query(slSql,[pageNum*pageSize,pageSize],(err,results) =>{
+    const teacher_id = parseInt(req.query.teacher_id);
+    const sql1 = 'select count(*) as total,t1.student_id,t1.student_name,t1.sex,t4.class_name,t1.student_check,t1.birthday,t1.address from student t1 left join score t2 on t1.student_id = t2.student_id join teacher t3 on t2.course_id = t3.course_id join class t4 on t1.class_id = t4.class_id where t3.teacher_id = ?';
+    const slSql = 'select t1.student_id,t1.student_name,t1.sex,t4.class_name,t1.student_check,t1.birthday,t1.address from student t1 left join score t2 on t1.student_id = t2.student_id join teacher t3 on t2.course_id = t3.course_id join class t4 on t1.class_id = t4.class_id where t3.teacher_id = ? limit ?,?';
+    db.query(slSql,[teacher_id,pageNum*pageSize,pageSize],(err,results) =>{
         if(err){
             return res.cc(err,400);
         } else if(results.length == 0) {
@@ -56,7 +75,7 @@ exports.getStudentList = (req,res)=>{
                 }   
                 results[i].birthday = tools.formatDate(results[i].birthday,'YYYY-MM-DD');
             }
-            db.query(allSql,(error,total)=>{
+            db.query(sql1,teacher_id,(error,total)=>{
                 if(error){
                     return res.cc(error.message);
                 } else {
@@ -98,7 +117,6 @@ exports.changStudentInfo = (req,res) =>{
     const changeList = {
         student_name:req.body.student_name,
         sex:req.body.sex,
-        classes:req.body.classes,
         birthday:req.body.birthday,
         address:req.body.address,
     };
@@ -113,6 +131,8 @@ exports.changStudentInfo = (req,res) =>{
         }
     });
 }
+
+
 exports.addHomeWork=(req,res)=>{
     const nowDate = new Date();
     const end_time = tools.addDate(nowDate,parseInt(req.body.hw_deadline),'days');
@@ -123,6 +143,7 @@ exports.addHomeWork=(req,res)=>{
         work_deadline:req.body.hw_deadline,
         work_time:nowDate,
         end_time:end_time,
+        teacher_id:req.query.teacher_id,
     };
     const sql = 'select*from homework where work_id = ?';
     const addSql = 'insert into homework set ?';
@@ -147,9 +168,10 @@ exports.addHomeWork=(req,res)=>{
 exports.getHomeWork = (req,res) =>{
     let pageNum = parseInt(req.query.pageNum)-1;
     let pageSize = parseInt(req.query.pageSize);
-    const slSql = 'select * from homework order by work_time desc limit ?,?';
-    const sql = 'select count(*) as total from homework ';
-    db.query(slSql,[pageNum*pageSize,pageSize],(err,results)=>{
+    const teacher_id = parseInt(req.query.teacher_id);
+    const slSql = 'select * from homework where teacher_id =? order by work_time desc limit ?,?';
+    const sql = 'select count(*) as total from homework where teacher_id = ?';
+    db.query(slSql,[teacher_id,pageNum*pageSize,pageSize],(err,results)=>{
         if(err){
             return res.cc(err.message);
         } else if(results.length == 0){
@@ -162,7 +184,7 @@ exports.getHomeWork = (req,res) =>{
                     results[i].work_status = "已发布";
                 }
             }
-            db.query(sql,(error,total)=>{
+            db.query(sql,teacher_id,(error,total)=>{
                 if(error){
                     return res.cc(error.message);
                 } else {
@@ -179,17 +201,30 @@ exports.getHomeWork = (req,res) =>{
 }
 exports.changeHomeWork = (req,res) =>{
     let work_id = req.body.work_id;
-    let work_name = req.body.work_name;
-    let work_details = req.body.work_details;
-    let work_deadline = req.body.work_deadline;
-    const sql = 'update homework set work_name=?,work_details=?,work_deadline=? where work_id=?';
-    db.query(sql,[work_name,work_details,work_deadline,work_id],(err,results)=>{
-        if(err){
-            return res.cc(err.message);
-        } else if(results.affectedRows != 1){
+    const changeInfo = {
+        work_name:req.body.work_name,
+        work_details:req.body.work_details,
+        work_deadline:req.body.work_deadline,
+    }
+    const sql = 'update homework set ? where work_id=?';
+    const sql2 = 'select work_time from homework where work_id = ?';
+    db.query(sql2,work_id,(error,work_time)=>{
+        if(error){
+            return res.cc(error.message);
+        } else if(work_time.length<0){
             return res.cc('修改失败',400);
-        } else{
-            return res.cc('修改成功',200);
+        } else {
+            const workDate = JSON.parse(JSON.stringify(work_time[0].work_time));
+            changeInfo.end_time = tools.addDate(workDate,parseInt(changeInfo.work_deadline),'days');
+            db.query(sql,[changeInfo,work_id],(err,results)=>{
+                if(err){
+                    return res.cc(err.message);
+                } else if(results.affectedRows != 1){
+                    return res.cc('修改失败',400);
+                } else{
+                    return res.cc('修改成功',200);
+                }
+            })
         }
     })
 }
@@ -230,18 +265,21 @@ exports.delHomeWork = (req,res) =>{
         }
     })
 }
+
+
 exports.getStdScore = (req,res)=>{
     let pageNum = parseInt(req.query.pageNum)-1;
     let pageSize = parseInt(req.query.pageSize);
-    const sql = 'select count(*) as total,t1.student_id,t1.student_name,t1.classes,t3.score,t2.course_name from student t1 left join score t3 on t1.student_id = t3.student_id join course t2 on t2.course_id = t3.course_id;';
-    const slSql = 'select t1.student_id,t1.student_name,t1.classes,t3.score,t2.course_name from student t1 left join score t3 on t1.student_id = t3.student_id join course t2 on t2.course_id = t3.course_id limit 0,2;';
-    db.query(slSql,[pageNum*pageSize,pageSize],(err,results)=>{
+    let teacher_id = parseInt(req.query.teacher_id);
+    const sql = 'select count(*) as total,t1.student_id,t1.student_name,t4.class_name,t2.score,t3.course_name from student t1 left join score t2 on t1.student_id = t2.student_id join course t3 on t2.course_id = t3.course_id join class t4 on t1.class_id = t4.class_id join teacher t5 on t3.course_id = t5.course_id where t5.teacher_id = ?';
+    const slSql = 'select t1.student_id,t1.student_name,t4.class_name,t2.score,t3.course_name from student t1 left join score t2 on t1.student_id = t2.student_id join course t3 on t2.course_id = t3.course_id join class t4 on t1.class_id = t4.class_id join teacher t5 on t3.course_id = t5.course_id where t5.teacher_id = ? limit ?,?';
+    db.query(slSql,[teacher_id,pageNum*pageSize,pageSize],(err,results)=>{
         if(err) {
             return res.cc(err.message);
         } else if(results.length == 0){
             return res.cc('查询失败',404);
         }else {
-            db.query(sql,(error,total)=>{
+            db.query(sql,teacher_id,(error,total)=>{
                 if(error){
                     return res.cc(error.message);
                 } else {
@@ -256,19 +294,20 @@ exports.getStdScore = (req,res)=>{
         }
     })
 }
-exports.getCourseStdScore = (req,res) =>{
+exports.getClassStdScore = (req,res) =>{
     let pageNum = parseInt(req.query.pageNum)-1;
     let pageSize = parseInt(req.query.pageSize);
-    const course_name = req.query.course_name;
-    const sql = 'select count(*) as total,t1.student_id,t1.student_name,t1.classes,t3.score,t2.course_name from student t1 left join score t3 on t1.student_id = t3.student_id join course t2 on t2.course_id = t3.course_id where course_name = ?';
-    const slSql = 'select t1.student_id,t1.student_name,t1.classes,t3.score,t2.course_name from student t1 left join score t3 on t1.student_id = t3.student_id join course t2 on t2.course_id = t3.course_id where course_name = ? limit ?,?';
-    db.query(slSql,[course_name,pageNum*pageSize,pageSize],(err,results)=>{
+    const class_id = parseInt(req.query.class_id);
+    const teacher_id = parseInt(req.query.teacher_id);
+    const sql = 'select count(*) as total,t1.student_id,t1.student_name,t4.class_name,t2.score,t3.course_name from student t1 left join score t2 on t1.student_id = t2.student_id join course t3 on t2.course_id = t3.course_id join class t4 on t1.class_id = t4.class_id join teacher t5 on t3.course_id = t5.course_id where t5.teacher_id = ? and t1.class_id = ?';
+    const slSql = 'select t1.student_id,t1.student_name,t4.class_name,t2.score,t3.course_name from student t1 left join score t2 on t1.student_id = t2.student_id join course t3 on t2.course_id = t3.course_id join class t4 on t1.class_id = t4.class_id join teacher t5 on t3.course_id = t5.course_id where t5.teacher_id = ? and t1.class_id = ? limit ?,?';
+    db.query(slSql,[teacher_id,class_id,pageNum*pageSize,pageSize],(err,results)=>{
         if(err) {
             return res.cc(err.message);
-        } else if(results.length == 0 ){
+        } else if(results.length === 0 ){
             return res.cc('查询失败',404);
         } else {
-            db.query(sql,course_name,(error,total)=>{
+            db.query(sql,[teacher_id,class_id],(error,total)=>{
                 if(error){
                     return res.cc(error.message);
                 } else {
@@ -283,6 +322,22 @@ exports.getCourseStdScore = (req,res) =>{
         }
     })
 }
+exports.changeStdScore = (req,res) =>{
+    const student_id = parseInt(req.body.student_id);
+    const score = parseInt(req.body.score);
+    const sql = 'update score set score = ? where student_id = ?';
+    db.query(sql,[score,student_id],(err,results)=>{
+        if(err){
+            return res.cc(err.message);
+        } else if(results.affectedRows !== 1){
+            return res.cc('修改失败',400);
+        } else {
+            return res.cc('修改成功',200);
+        }
+    })
+}
+
+
 exports.addNotice = (req,res) =>{
     const nowDate = new Date();
     const Notice_Info = {
@@ -290,6 +345,7 @@ exports.addNotice = (req,res) =>{
         notice_theme:req.body.notice_theme,
         notice_details:req.body.notice_details,
         notice_time:nowDate,
+        teacher_id:req.query.teacher_id,
     };
     const Checksql = 'select*from class_notice where notice_id = ?';
     const sql = 'insert into class_notice set ?';
@@ -314,9 +370,10 @@ exports.addNotice = (req,res) =>{
 exports.getNotice = (req,res) =>{
     let pageNum = parseInt(req.query.pageNum)-1;
     let pageSize = parseInt(req.query.pageSize);
-    const Allsql = 'select count(*) as total from class_notice';
-    const sql = 'select * from class_notice limit ?,?';
-    db.query(sql,[pageNum*pageSize,pageSize],(err,results)=>{
+    const teacher_id = req.query.teacher_id;
+    const Allsql = 'select count(*) as total from class_notice where teacher_id = ?';
+    const sql = 'select * from class_notice where teacher_id = ? limit ?,?';
+    db.query(sql,[teacher_id,pageNum*pageSize,pageSize],(err,results)=>{
         if(err){
             return res.cc(err.message);
         } else if(results.length ===0 ) {
@@ -330,7 +387,7 @@ exports.getNotice = (req,res) =>{
                 }   
                 results[i].notice_time = tools.formatDate(results[i].notice_time,'YYYY-MM-DD');
             }
-            db.query(Allsql,(error,total)=>{
+            db.query(Allsql,teacher_id,(error,total)=>{
                 if(error) {
                     return res.cc(error.message);
                 } else {
@@ -401,4 +458,9 @@ exports.changeNotice=(req,res)=>{
             return res.cc('修改成功',200);
         }
     })
+}
+
+exports.getClassScore = (req,res) =>{
+    const teacher_id = req.query.teacher_id;
+    const sql = 'select course_id from course where teacher_id = ?';
 }
