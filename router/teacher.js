@@ -27,4 +27,12 @@ router.delete('/delNotice',teacher.delNotice);
 router.put('/changeNotice',teacher.changeNotice);
 
 router.get('/getClassScore',teacher.getClassScore);
+
+router.get('/getStudentEva',teacher.getStudentEva);
+router.get('/getClassStudentEva',teacher.getClassStudentEva);
+router.get('/getStudentEvaById',teacher.getStudentEvaById);
+router.post('/editEvaluate',teacher.editEvaluate);
+router.post('/addEvaluate',teacher.addEvaluate);
+
+
 module.exports = router;

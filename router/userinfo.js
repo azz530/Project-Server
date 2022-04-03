@@ -4,6 +4,7 @@ const multer = require('multer');
 const userinfo = require('../router_handler/userinfo.js');
 
 router.get('/getUserInfo',userinfo.getUserInfo);
+router.get('/getUserID',userinfo.getUserID);
 let storage = multer.diskStorage({
     destination:function(req,file,cb){
         cb(null,'uploads');
@@ -32,5 +33,5 @@ let homework = multer.diskStorage({
 })
 let uploadWorks = multer({storage:homework});
 router.post('/commitHomeWork',uploadWorks.any(),userinfo.commitHomeWork);
-router.get('/getScoreData',userinfo.getScoreData)
+router.get('/getScoreData',userinfo.getScoreData);
 module.exports = router;

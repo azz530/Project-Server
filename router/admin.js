@@ -26,6 +26,15 @@ router.post('/addCourse', admin.addCourse);
 router.put('/changeCourseInfo', admin.changeCourseInfo);
 router.delete('/delCourse', admin.delCourse);
 
- 
- 
+router.get('/getUserList', admin.getUserList);
+router.get('/getUserById', admin.getUserById);
+router.put('/changeUserInfo', admin.changeUserInfo);
+router.delete('/delUser', admin.delUser);
+
+
+router.get('/getNotice', admin.getNotice);
+router.post('/addNotice', admin.addNotice);
+router.put('/changeNotice', admin.changeNotice);
+router.delete('/delNotice', admin.delNotice);
+
 module.exports = router;

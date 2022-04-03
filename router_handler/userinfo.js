@@ -19,6 +19,57 @@ exports.getUserInfo = (req, res) => {
         }
     });
 }
+exports.getUserID = (req,res) =>{
+    const identity = req.query.identity;
+    const identity_id = parseInt(req.query.identity_id);
+    const sql1 = 'select student_id from student where student_id = ?';
+    const sql2 = 'select teacher_id from teacher where teacher_id = ?';
+    const sql3 = "select identity_id from users where identity_id = ? and identity ='学生'";
+    const sql4 = "select identity_id from users where identity_id = ? and identity ='老师'";
+    const changeStdUser = () => {
+        db.query(sql1, identity_id, (mis1, result1) => {
+            if (mis1) {
+                return res.cc(mis1.message);
+            } else if (result1.length === 0) {
+                return res.cc('该学号不存在', 403)
+            } else {
+                db.query(sql3, identity_id, (mis2, result2) => {
+                    if (mis2) {
+                        return res.cc(mis2.message);
+                    } else if (result2.length > 0) {
+                        return res.cc('该学号已被绑定', 404);
+                    } else {
+                        return res.cc('查询成功',200)
+                    }
+                })
+            }
+        })
+    }
+    const changeTUser = () => {
+        db.query(sql2, identity_id, (mis1, result1) => {
+            if (mis1) {
+                return res.cc(mis1.message);
+            } else if (result1.length === 0) {
+                return res.cc('该教师号不存在', 405)
+            } else {
+                db.query(sql4, identity_id, (mis2, result2) => {
+                    if (mis2) {
+                        return res.cc(mis2.message);
+                    } else if (result2.length > 0) {
+                        return res.cc('该教师号已被绑定', 406);
+                    } else {
+                        return res.cc('查询成功',200);
+                    }
+                })
+            }
+        })
+    }
+    if (identity === '学生') {
+        changeStdUser();
+    } else {
+        changeTUser();
+    }
+}
 exports.uploadAvatar = async (req, res) => {
     const url = 'http://localhost:3000/' + req.file.filename;
     const id = req.body.id;
