@@ -491,11 +491,62 @@ exports.delUser = (req, res) => {
     })
 }
 
+exports.addBanner = (req,res) =>{
+    const baseurl = 'http://localhost:3000/';
+    let picture = '';
+    if(req.files.length>0){
+        for (let i = 0; i < req.files.length; i++) {
+            let PicUrl = baseurl + req.files[i].filename;
+            picture += PicUrl + ',';
+        }
+        picture = picture.substring(0, picture.lastIndexOf(','));
+    }
+    const bannerInfo = {
+        picture,
+        time:new Date(),
+    } 
+    const sql = 'insert into banner set ?';
+    db.query(sql,bannerInfo,(err,results)=>{
+        if(err){
+            return res.cc(err.message);
+        } else if (results.affectedRows !== 1 ){
+            return res.cc('新增失败',400);
+        } else {
+            return res.send({
+                status:200,
+                message:'新增成功',
+                picture,
+            })
+        }
+    })
+}
+
+exports.getBanner = (req,res) =>{
+    const sql = 'select*from banner order by time desc';
+    db.query(sql,(err,results)=>{
+        if(err){
+            return res.cc(err.message);
+        } else if (results.length<0){
+            return res.cc('查询失败',400);
+        } else {
+            results = JSON.parse(JSON.stringify(results));
+            results.forEach(item => {
+                item.picture = item.picture.split(',')
+            });
+            return res.send({
+                status:200,
+                message:'查询成功',
+                data:results[0],
+            })
+        }
+    })
+}
+
 exports.getNotice = (req,res) =>{
     let pageNum = parseInt(req.query.pageNum) - 1;
     let pageSize = parseInt(req.query.pageSize);
-    const sql1 = 'select count(*) from notice';
-    const sql = 'select * from notice limit ?,?';
+    const sql1 = 'select count(*) as total from notice';
+    const sql = 'select * from notice order by time desc limit ?,?';
     db.query(sql,[pageNum*pageSize,pageSize],(err,results)=>{
         if(err){
             return res.cc(err.message);
@@ -503,6 +554,12 @@ exports.getNotice = (req,res) =>{
             return res.cc('获取公告失败',400);
         } else {
             results = JSON.parse(JSON.stringify(results));
+            for (let i = 0; i < results.length; i++) {
+                results[i].time = tools.formatDate(results[i].time, 'YYYY-MM-DD');
+                if(results[i].picture){
+                    results[i].picture = results[i].picture.split(',');
+                }
+            }
             db.query(sql1,(error,total)=>{
                 if(error){
                     return res.cc(error.message);
@@ -520,10 +577,19 @@ exports.getNotice = (req,res) =>{
 }
 exports.addNotice = (req,res) =>{
     const baseurl = 'http://localhost:3000/';
+    let picture = '';
+    if(req.files.length>0){
+        for (let i = 0; i < req.files.length; i++) {
+            let PicUrl = baseurl + req.files[i].filename;
+            picture += PicUrl + ',';
+        }
+        picture = picture.substring(0, picture.lastIndexOf(','));
+    }
     const NoticeInfo = {
         title:req.body.title,
         content:req.body.content,
         time:new Date(),
+        picture,
     }
     const sql = 'insert into notice set ?';
     db.query(sql,NoticeInfo,(err,results)=>{

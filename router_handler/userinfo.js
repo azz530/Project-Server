@@ -1,4 +1,3 @@
-const e = require('express');
 const db = require('../db/index.js');
 const tools = require('../utils/tools.js');
 exports.getUserInfo = (req, res) => {
@@ -73,7 +72,6 @@ exports.getUserID = (req,res) =>{
 exports.uploadAvatar = async (req, res) => {
     const url = 'http://localhost:3000/' + req.file.filename;
     const id = req.body.id;
-    console.log('sssssssaaaaaaaaaaaaaaaas');
     const sql = 'update users set avatar=? where id=?'
     db.query(sql, [url, id], (err, results) => {
         if (err) {

@@ -5,11 +5,15 @@ const userRouter = require('./router/user.js');
 const userinfoRouter = require('./router/userinfo.js');
 const teacherRouter = require('./router/teacher.js');
 const adminRouter = require('./router/admin.js');
+const homeRouter = require('./router/home.js');
 const config = require('./config.js');
 const expressJWT = require('express-jwt');
 const port = 3000;
+
 app.use(express.static('uploads'));
 app.use(express.static('homeworks'));
+app.use(express.static('noticePic'));
+app.use(express.static('banner'));
 // app.all("*",(req,res,next)=>{
 //     res.header('Access-Control-Allow-Origin',"*");
 //     res.header('Access-Control-Allow-Headers','Content-Type,Authorization');
@@ -40,6 +44,7 @@ app.use('/api',userRouter);
 app.use('/my',userinfoRouter);
 app.use('/teacher',teacherRouter);
 app.use('/admin',adminRouter);
+app.use('/home',homeRouter);
 //错误中间件
 app.use((err,req,res,next)=>{
     if(err.name === 'UnauthorizedError'){

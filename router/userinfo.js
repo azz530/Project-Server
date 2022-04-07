@@ -10,11 +10,12 @@ let storage = multer.diskStorage({
         cb(null,'uploads');
     },
     filename:function(req,file,cb){
-        cb(null,Date.now()+file.originalname);
+        cb(null,Date.now()+Math.round(Math.random()*100)+file.originalname);
     }
 })
 let upload = multer({storage:storage});
-router.post('/uploadAvatar',upload.single('avatar'),userinfo.uploadAvatar); 
+router.post('/uploadAvatar',upload.single('avatar'),userinfo.uploadAvatar);
+
 router.put('/addTags',userinfo.addTags);
 router.put('/delTags',userinfo.delTags);
 router.put('/changeUserInfo',userinfo.changeUserInfo);
