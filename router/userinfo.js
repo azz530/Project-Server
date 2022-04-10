@@ -35,4 +35,8 @@ let homework = multer.diskStorage({
 let uploadWorks = multer({storage:homework});
 router.post('/commitHomeWork',uploadWorks.any(),userinfo.commitHomeWork);
 router.get('/getScoreData',userinfo.getScoreData);
+
+
+router.post('/addActivity',userinfo.addActivity);
+router.get('/getActivity',userinfo.getActivity);
 module.exports = router;

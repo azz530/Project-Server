@@ -4,6 +4,7 @@ const multer = require('multer');
 const admin = require('../router_handler/admin.js');
 
 router.post('/addStudent', admin.addStudent);
+router.get('/searchStd', admin.searchStd);
 router.get('/getStudentList', admin.getStudentList);
 router.get('/getClass', admin.getClass);
 router.put('/changeStudent', admin.changeStudent);
@@ -16,6 +17,7 @@ router.get('/getClassStd', admin.getClassStd);
 
 
 router.get('/getTeacherInfo', admin.getTeacherInfo);
+router.get('/searchTeacher', admin.searchTeacher);
 router.post('/addTeacher', admin.addTeacher);
 router.put('/changeTeacherInfo', admin.changeTeacherInfo);
 router.delete('/delTeacher', admin.delTeacher);
@@ -28,6 +30,7 @@ router.put('/changeCourseInfo', admin.changeCourseInfo);
 router.delete('/delCourse', admin.delCourse);
 
 router.get('/getUserList', admin.getUserList);
+router.get('/searchUser', admin.searchUser);
 router.get('/getUserById', admin.getUserById);
 router.put('/changeUserInfo', admin.changeUserInfo);
 router.delete('/delUser', admin.delUser);
@@ -58,4 +61,17 @@ router.post('/addNotice',upload.any(),admin.addNotice);
 router.put('/changeNotice', admin.changeNotice);
 router.delete('/delNotice', admin.delNotice);
 
+
+let video = multer.diskStorage({
+    destination:function(req,file,cb){
+        cb(null,'video');
+    },
+    filename:function(req,file,cb){
+        cb(null,Date.now()+Math.round(Math.random()*100)+file.originalname);
+    }
+})
+let videoUpload = multer({storage:video});
+router.post('/addVideo',videoUpload.any(),admin.addVideo);
+router.get('/getVideo',admin.getVideo);
+router.delete('/delVideo',admin.delVideo);
 module.exports = router;

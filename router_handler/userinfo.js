@@ -330,3 +330,42 @@ exports.getScoreData = async (req, res) => {
     })
 
 }
+
+exports.addActivity = (req,res) =>{
+    const Info = {
+        name:req.body.name,
+        userid:req.query.id,
+        actime:req.body.actime,
+    }
+    const sql = 'insert into activity set ?';
+    db.query(sql,Info,(err,results)=>{
+        if(err){
+            return res.cc(err.message);
+        } else if(results.affectedRows!==1){
+            return res.cc('新增失败',400);
+        } else {
+            return res.cc('新增成功',200);
+        }
+    })
+}
+exports.getActivity = (req,res) =>{
+    const userid = req.query.id;
+    const sql = 'select * from activity where userid = ?';
+    db.query(sql,userid,(err,results)=>{
+        if(err){
+            return res.cc(err.message);
+        } else if(results.length === 0){
+            return res.cc('查询失败',400);
+        } else {
+            results = JSON.parse(JSON.stringify(results));
+            results.forEach(i => {
+                i.actime = tools.formatDate(i.actime,'YYYY-MM-DD');
+            });
+            return res.send({
+                status:200,
+                message:'查询成功',
+                data:results,
+            })
+        }
+    })
+}

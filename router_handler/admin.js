@@ -88,6 +88,50 @@ exports.addStudent = (req, res) => {
         }
     })
 }
+exports.searchStd = (req, res) => {
+    let reg = /^\d{6,10}$/;
+    const str = req.query.str;
+    const sql = 'select*from student where student_id = ?';
+    const sql1 = "select *from student where student_name like ?";
+    if (reg.test(str)) {
+        let student_id = parseInt(str);
+        db.query(sql, student_id, (err, results) => {
+            if (err) {
+                return res.cc(err);
+            } else if (results.length !== 1) {
+                return res.cc('查询失败', 400);
+            } else {
+                results = JSON.parse(JSON.stringify(results));
+                results[0].birthday = tools.formatDate(results[0].birthday, 'YYYY-MM-DD');
+                return res.send({
+                    status: 200,
+                    message: '查询成功',
+                    data: results,
+                })
+            }
+        })
+    } else {
+        const value = '%' + str + '%';
+        db.query(sql1, value, (err, results) => {
+            if (err) {
+                return res.cc(err);
+            } else if (results.length === 0) {
+                return res.cc('查询失败', 400);
+            } else {
+                results = JSON.parse(JSON.stringify(results));
+                results.forEach((i) => {
+                    i.birthday = tools.formatDate(i.birthday, 'YYYY-MM-DD');
+                })
+                return res.send({
+                    status: 200,
+                    message: '查询成功',
+                    data: results,
+                })
+            }
+        })
+    }
+
+}
 exports.changeStudent = (req, res) => {
     const changeInfo = {
         student_name: req.body.student_name,
@@ -132,6 +176,8 @@ exports.delStudent = (req, res) => {
         }
     })
 }
+
+
 exports.getGradeInfo = (req, res) => {
     const sql = 'select grade.grade_id,grade.grade_name,(select count(*) from class where grade.grade_id = class.grade_id) as class_num,(select count(*)from student where grade.grade_name = student.grade_name) as student_num,teacher_name from grade left join teacher on grade.teacher_id = teacher.teacher_id';
     db.query(sql, (err, results) => {
@@ -148,6 +194,8 @@ exports.getGradeInfo = (req, res) => {
         }
     })
 }
+
+
 exports.getClassInfo = (req, res) => {
     let pageNum = parseInt(req.query.pageNum) - 1;
     let pageSize = parseInt(req.query.pageSize);
@@ -202,6 +250,8 @@ exports.getClassStd = (req, res) => {
         }
     })
 }
+
+
 exports.getTeacherInfo = (req, res) => {
     let pageNum = parseInt(req.query.pageNum) - 1;
     let pageSize = parseInt(req.query.pageSize);
@@ -227,6 +277,45 @@ exports.getTeacherInfo = (req, res) => {
             })
         }
     })
+}
+exports.searchTeacher = (req, res) => {
+    let reg = /^\d{6,10}$/;
+    const str = req.query.str;
+    const sql = 'select*from teacher where teacher_id = ?';
+    const sql1 = "select *from teacher where teacher_name like ?";
+    if (reg.test(str)) {
+        let teacher_id = parseInt(str);
+        db.query(sql, teacher_id, (err, results) => {
+            if (err) {
+                return res.cc(err);
+            } else if (results.length !== 1) {
+                return res.cc('查询失败', 400);
+            } else {
+                results = JSON.parse(JSON.stringify(results));
+                return res.send({
+                    status: 200,
+                    message: '查询成功',
+                    data: results,
+                })
+            }
+        })
+    } else {
+        const value = '%' + str + '%';
+        db.query(sql1, value, (err, results) => {
+            if (err) {
+                return res.cc(err);
+            } else if (results.length === 0) {
+                return res.cc('查询失败', 400);
+            } else {
+                results = JSON.parse(JSON.stringify(results));
+                return res.send({
+                    status: 200,
+                    message: '查询成功',
+                    data: results,
+                })
+            }
+        })
+    }
 }
 exports.addTeacher = (req, res) => {
     const TeacherInfo = {
@@ -324,6 +413,9 @@ exports.delTeacher = (req, res) => {
         }
     })
 }
+
+
+
 exports.addCourse = (req, res) => {
     const CourseInfo = {
         course_id: parseInt(req.body.course_id),
@@ -354,7 +446,7 @@ exports.getCourseInfo = (req, res) => {
     let pageNum = parseInt(req.query.pageNum) - 1;
     let pageSize = parseInt(req.query.pageSize);
     const Sql = 'select count(*) as total from course';
-    const sql = 'select* from course limit ?,?';
+    const sql = 'select t2.course_id,t2.course_name,t2.course_message,count(t1.course_id) as num from score t1 right join course t2 on t1.course_id = t2.course_id group by t1.course_id order by num desc limit ?,?';
     db.query(sql, [pageNum * pageSize, pageSize], (err, results) => {
         if (err) {
             return res.cc(err.message);
@@ -407,6 +499,8 @@ exports.delCourse = (req, res) => {
     })
 }
 
+
+
 exports.getUserList = (req, res) => {
     let pageNum = parseInt(req.query.pageNum) - 1;
     let pageSize = parseInt(req.query.pageSize);
@@ -436,6 +530,49 @@ exports.getUserList = (req, res) => {
             })
         }
     })
+}
+exports.searchUser = (req, res) => {
+    let reg = /^\d{0,10}$/;
+    const str = req.query.str;
+    const sql = 'select*from users where id = ?';
+    const sql1 = "select *from users where username like ?";
+    if (reg.test(str)) {
+        let id = parseInt(str);
+        db.query(sql, id, (err, results) => {
+            if (err) {
+                return res.cc(err);
+            } else if (results.length !== 1) {
+                return res.cc('查询失败', 400);
+            } else {
+                results = JSON.parse(JSON.stringify(results));
+                results[0].birthday = tools.formatDate(results[0].birthday, 'YYYY-MM-DD');
+                return res.send({
+                    status: 200,
+                    message: '查询成功',
+                    data: results,
+                })
+            }
+        })
+    } else {
+        const value = '%' + str + '%';
+        db.query(sql1, value, (err, results) => {
+            if (err) {
+                return res.cc(err);
+            } else if (results.length === 0) {
+                return res.cc('查询失败', 400);
+            } else {
+                results = JSON.parse(JSON.stringify(results));
+                results.forEach((i) => {
+                    i.birthday = tools.formatDate(i.birthday, 'YYYY-MM-DD');
+                })
+                return res.send({
+                    status: 200,
+                    message: '查询成功',
+                    data: results,
+                })
+            }
+        })
+    }
 }
 exports.getUserById = (req, res) => {
     const id = req.query.id;
@@ -467,13 +604,13 @@ exports.changeUserInfo = (req, res) => {
     console.log(id);
     console.log(changeInfo);
     const sql = 'update users set ? where id =?';
-    db.query(sql,[changeInfo,id],(err,results)=>{
-        if(err){
+    db.query(sql, [changeInfo, id], (err, results) => {
+        if (err) {
             return res.cc(err.message);
-        } else if (results.affectedRows !== 1){
-            return res.cc('修改失败',400);
+        } else if (results.affectedRows !== 1) {
+            return res.cc('修改失败', 400);
         } else {
-            return res.cc('修改成功',200);
+            return res.cc('修改成功', 200);
         }
     })
 }
@@ -491,10 +628,12 @@ exports.delUser = (req, res) => {
     })
 }
 
-exports.addBanner = (req,res) =>{
+
+
+exports.addBanner = (req, res) => {
     const baseurl = 'http://localhost:3000/';
     let picture = '';
-    if(req.files.length>0){
+    if (req.files.length > 0) {
         for (let i = 0; i < req.files.length; i++) {
             let PicUrl = baseurl + req.files[i].filename;
             picture += PicUrl + ',';
@@ -503,82 +642,80 @@ exports.addBanner = (req,res) =>{
     }
     const bannerInfo = {
         picture,
-        time:new Date(),
-    } 
+        time: new Date(),
+    }
     const sql = 'insert into banner set ?';
-    db.query(sql,bannerInfo,(err,results)=>{
-        if(err){
+    db.query(sql, bannerInfo, (err, results) => {
+        if (err) {
             return res.cc(err.message);
-        } else if (results.affectedRows !== 1 ){
-            return res.cc('新增失败',400);
+        } else if (results.affectedRows !== 1) {
+            return res.cc('新增失败', 400);
         } else {
             return res.send({
-                status:200,
-                message:'新增成功',
+                status: 200,
+                message: '新增成功',
                 picture,
             })
         }
     })
 }
-
-exports.getBanner = (req,res) =>{
+exports.getBanner = (req, res) => {
     const sql = 'select*from banner order by time desc';
-    db.query(sql,(err,results)=>{
-        if(err){
+    db.query(sql, (err, results) => {
+        if (err) {
             return res.cc(err.message);
-        } else if (results.length<0){
-            return res.cc('查询失败',400);
+        } else if (results.length < 0) {
+            return res.cc('查询失败', 400);
         } else {
             results = JSON.parse(JSON.stringify(results));
             results.forEach(item => {
                 item.picture = item.picture.split(',')
             });
             return res.send({
-                status:200,
-                message:'查询成功',
-                data:results[0],
+                status: 200,
+                message: '查询成功',
+                data: results[0],
             })
         }
     })
 }
-
-exports.getNotice = (req,res) =>{
+exports.getNotice = (req, res) => {
     let pageNum = parseInt(req.query.pageNum) - 1;
     let pageSize = parseInt(req.query.pageSize);
     const sql1 = 'select count(*) as total from notice';
     const sql = 'select * from notice order by time desc limit ?,?';
-    db.query(sql,[pageNum*pageSize,pageSize],(err,results)=>{
-        if(err){
+    db.query(sql, [pageNum * pageSize, pageSize], (err, results) => {
+        if (err) {
             return res.cc(err.message);
-        } else if(results.length<0){
-            return res.cc('获取公告失败',400);
+        } else if (results.length < 0) {
+            return res.cc('获取公告失败', 400);
         } else {
             results = JSON.parse(JSON.stringify(results));
             for (let i = 0; i < results.length; i++) {
                 results[i].time = tools.formatDate(results[i].time, 'YYYY-MM-DD');
-                if(results[i].picture){
+                if (results[i].picture) {
                     results[i].picture = results[i].picture.split(',');
                 }
             }
-            db.query(sql1,(error,total)=>{
-                if(error){
+            db.query(sql1, (error, total) => {
+                if (error) {
                     return res.cc(error.message);
                 } else {
                     return res.send({
-                        status:200,
-                        message:'查询成功',
-                        data:results,
-                        total:total[0]['total'],
+                        status: 200,
+                        message: '查询成功',
+                        data: results,
+                        total: total[0]['total'],
                     })
                 }
             })
         }
     })
 }
-exports.addNotice = (req,res) =>{
+exports.addNotice = (req, res) => {
     const baseurl = 'http://localhost:3000/';
     let picture = '';
-    if(req.files.length>0){
+    if (req.files.length > 0) {
         for (let i = 0; i < req.files.length; i++) {
             let PicUrl = baseurl + req.files[i].filename;
             picture += PicUrl + ',';
@@ -586,46 +723,108 @@ exports.addNotice = (req,res) =>{
         picture = picture.substring(0, picture.lastIndexOf(','));
     }
     const NoticeInfo = {
-        title:req.body.title,
-        content:req.body.content,
-        time:new Date(),
+        title: req.body.title,
+        content: req.body.content,
+        time: new Date(),
         picture,
     }
     const sql = 'insert into notice set ?';
-    db.query(sql,NoticeInfo,(err,results)=>{
-        if(err){
+    db.query(sql, NoticeInfo, (err, results) => {
+        if (err) {
             return res.cc(err.message);
-        } else if(results.affectedRows !== 1){
-            return res.cc('新增失败',400);
+        } else if (results.affectedRows !== 1) {
+            return res.cc('新增失败', 400);
         } else {
-            return res.cc('新增成功',200);
+            return res.cc('新增成功', 200);
         }
     })
 }
-exports.changeNotice = (req,res) =>{
+exports.changeNotice = (req, res) => {
     const id = req.body.id;
     const changeInfo = {};
     const sql = "update notice set ? where id = ?";
-    db.query(sql,[changeInfo,id],(err,results)=>{
-        if(err){
+    db.query(sql, [changeInfo, id], (err, results) => {
+        if (err) {
             return res.cc(err.message);
-        } else if(results.affectedRows!==1){
-            return res.cc('更新失败',400);
+        } else if (results.affectedRows !== 1) {
+            return res.cc('更新失败', 400);
         } else {
-            return res.cc('更新成功',200);
+            return res.cc('更新成功', 200);
         }
     })
 }
-exports.delNotice = (req,res) =>{
+exports.delNotice = (req, res) => {
     const id = req.query.id;
     const sql = "delete from notice where id = ?";
-    db.query(sql,id,(err,results)=>{
-        if(err){
+    db.query(sql, id, (err, results) => {
+        if (err) {
             return res.cc(err.message);
-        } else if(results.affectedRows!==1){
-            return res.cc('删除失败',400);
+        } else if (results.affectedRows !== 1) {
+            return res.cc('删除失败', 400);
         } else {
-            return res.cc('删除成功',200);
+            return res.cc('删除成功', 200);
+        }
+    })
+}
+exports.addVideo = (req, res) => {
+    const baseurl = 'http://localhost:3000/';
+    let videoUrl = '';
+    if (req.files.length > 0) {
+        for (let i = 0; i < req.files.length; i++) {
+            let Url = baseurl + req.files[i].filename;
+            videoUrl += Url + ',';
+        }
+        videoUrl = videoUrl.substring(0, videoUrl.lastIndexOf(','));
+    }
+    const videoInfo = {
+        url: videoUrl,
+        time: new Date()
+    }
+    const sql = 'insert into video set ?';
+    db.query(sql, videoInfo, (err, results) => {
+        if (err) {
+            return res.cc(err.message);
+        } else if (results.affectedRows !== 1) {
+            return res.cc('新增失败', 400);
+        } else {
+            return res.send({
+                status: 200,
+                message: '新增成功',
+                url: videoUrl,
+            })
+        }
+    })
+}
+exports.getVideo = (req, res) => {
+    const sql = 'select * from video order by time desc limit 0,3';
+    db.query(sql, (err, results) => {
+        if (err) {
+            return res.cc(err.message);
+        } else if (results.length < 0) {
+            return res.cc('查询失败', 400);
+        } else {
+            results = JSON.parse(JSON.stringify(results))
+            results.forEach((i) => {
+                i.time = tools.formatDate(i.time, 'YYYY-MM-DD hh:mm:ss');
+            })
+            return res.send({
+                status: 200,
+                message: '获取成功',
+                data: results,
+            })
+        }
+    })
+}
+exports.delVideo = (req, res) => {
+    const id = req.query.id;
+    const sql = 'delete from video where id =?';
+    db.query(sql, id, (err, results) => {
+        if (err) {
+            return res.cc(err.message);
+        } else if (results.affectedRows !== 1) {
+            return res.cc('删除失败', 400);
+        } else {
+            return res.cc('删除成功', 200);
         }
     })
 }

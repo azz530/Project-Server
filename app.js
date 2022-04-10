@@ -14,6 +14,7 @@ app.use(express.static('uploads'));
 app.use(express.static('homeworks'));
 app.use(express.static('noticePic'));
 app.use(express.static('banner'));
+app.use(express.static('video'));
 // app.all("*",(req,res,next)=>{
 //     res.header('Access-Control-Allow-Origin',"*");
 //     res.header('Access-Control-Allow-Headers','Content-Type,Authorization');
