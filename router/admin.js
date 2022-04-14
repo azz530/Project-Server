@@ -13,7 +13,7 @@ router.delete('/delStudent', admin.delStudent);
 
 router.get('/getGradeInfo', admin.getGradeInfo);
 router.get('/getClassInfo', admin.getClassInfo);
-router.get('/getClassStd', admin.getClassStd);
+router.get('/getClassStudent', admin.getClassStudent);
 
 
 router.get('/getTeacherInfo', admin.getTeacherInfo);
@@ -25,9 +25,19 @@ router.get('/getCourse', admin.getCourse);
 
 
 router.get('/getCourseInfo', admin.getCourseInfo);
+router.get('/getCourseStd', admin.getCourseStd);
+router.get('/getClassStd', admin.getClassStd);
 router.post('/addCourse', admin.addCourse);
+router.post('/addCourseStd', admin.addCourseStd);
 router.put('/changeCourseInfo', admin.changeCourseInfo);
 router.delete('/delCourse', admin.delCourse);
+
+router.get('/getExamInfo', admin.getExamInfo);
+router.post('/addExam', admin.addExam);
+router.put('/changeExamInfo', admin.changeExamInfo);
+router.delete('/delExam', admin.delExam);
+
+
 
 router.get('/getUserList', admin.getUserList);
 router.get('/searchUser', admin.searchUser);

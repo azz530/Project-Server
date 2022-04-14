@@ -39,4 +39,8 @@ router.get('/getScoreData',userinfo.getScoreData);
 
 router.post('/addActivity',userinfo.addActivity);
 router.get('/getActivity',userinfo.getActivity);
+
+
+router.get('/getExamInfo',userinfo.getExamInfo);
+router.get('/getStdEva',userinfo.getStdEva);
 module.exports = router;

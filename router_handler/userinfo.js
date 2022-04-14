@@ -1,6 +1,6 @@
 const db = require('../db/index.js');
 const tools = require('../utils/tools.js');
-exports.getUserInfo = (req, res) => {
+exports.getUserInfo = async(req, res) => {
     const sqlGetUerInfo = 'select username,avatar,identity,usersign,tags,birthday,address,sex,identity_id from users where id=?';
     const id = req.query.id
     db.query(sqlGetUerInfo, id, (err, results) => {//查询用户信息
@@ -18,7 +18,7 @@ exports.getUserInfo = (req, res) => {
         }
     });
 }
-exports.getUserID = (req,res) =>{
+exports.getUserID = async(req,res) =>{
     const identity = req.query.identity;
     const identity_id = parseInt(req.query.identity_id);
     const sql1 = 'select student_id from student where student_id = ?';
@@ -234,7 +234,7 @@ exports.getHomeWork = async (req, res) => {
         } else {
             for (let i = 0; i < results.length; i++) {
                 results[i].details_time = tools.formatDate(results[i].work_time, 'YYYY-MM-DD hh:mm:ss');
-                results[i].work_time = tools.formatDate(results[i].work_time, 'YYYY-MM-DD');
+                results[i].work_time = tools.formatDate(results[i].work_time, 'YYYY-MM-DD hh:mm:ss');
                 results[i].end_time = tools.formatDate(results[i].end_time, 'YYYY-MM-DD');
             }
             return res.send({
@@ -314,12 +314,13 @@ exports.commitHomeWork = async (req, res) => {
 }
 exports.getScoreData = async (req, res) => {
     const student_id = parseInt(req.query.student_id);
-    const sql2 = 'select t1.score,t2.course_name from score t1 left join course t2 on t1.course_id = t2.course_id where t1.student_id = ?';
-    db.query(sql2, student_id, (err, results) => {
+    const exam_id = parseInt(req.query.exam_id);
+    const sql2 = 'select t1.score,t2.course_name from score t1 left join course t2 on t1.course_id = t2.course_id where t1.student_id = ? and t1.exam_id = ?';
+    db.query(sql2, [student_id,exam_id], (err, results) => {
         if (err) {
             return res.cc(err.message);
-        } else if (results.length < 0) {
-            return res.cc('查询失败', 400);
+        } else if (results.length === 0) {
+            return res.cc('查询失败', 402);
         } else {
             return res.send({
                 status: 200,
@@ -331,7 +332,7 @@ exports.getScoreData = async (req, res) => {
 
 }
 
-exports.addActivity = (req,res) =>{
+exports.addActivity = async(req,res) =>{
     const Info = {
         name:req.body.name,
         userid:req.query.id,
@@ -348,7 +349,7 @@ exports.addActivity = (req,res) =>{
         }
     })
 }
-exports.getActivity = (req,res) =>{
+exports.getActivity = async(req,res) =>{
     const userid = req.query.id;
     const sql = 'select * from activity where userid = ?';
     db.query(sql,userid,(err,results)=>{
@@ -361,6 +362,49 @@ exports.getActivity = (req,res) =>{
             results.forEach(i => {
                 i.actime = tools.formatDate(i.actime,'YYYY-MM-DD');
             });
+            return res.send({
+                status:200,
+                message:'查询成功',
+                data:results,
+            })
+        }
+    })
+}
+
+exports.getExamInfo = async(req,res) =>{
+    const sql = 'select * from exam order by time desc';
+    db.query(sql,(err, results) => {
+        if (err) {
+            return res.cc(err.message);
+        } else if (results.length === 0) {
+            return res.cc('查询失败', 400);
+        } else {
+            results = JSON.parse(JSON.stringify(results));
+            results.map((i)=>{
+                i.start_time = tools.formatDate(i.start_time, 'YYYY-MM-DD');
+                i.end_time = tools.formatDate(i.end_time, 'YYYY-MM-DD');
+            })
+            return res.send({
+                status:200,
+                message:'查询成功',
+                data:results,
+            })
+        }
+    })
+}
+exports.getStdEva = async(req,res) =>{
+    const student_id = req.query.student_id;
+    const sql = 'select * from evaluate t1 left join teacher t2 on t1.teacher_id = t2.teacher_id where t1.student_id = ? order by public_time desc';
+    db.query(sql,student_id,(err,results)=>{
+        if(err){
+            return res.cc(err.message);
+        } else if(results.length <=0 ){
+            return res.cc('查询失败',400);
+        } else {
+            results = JSON.parse(JSON.stringify(results));
+            results.map(item=>{
+                item.public_time = tools.formatDate(item.public_time,'YYYY年MM月DD日');
+            })
             return res.send({
                 status:200,
                 message:'查询成功',

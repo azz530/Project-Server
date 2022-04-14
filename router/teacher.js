@@ -4,8 +4,8 @@ const teacher = require('../router_handler/teacher.js')
 
 router.get('/getClassStudentList',teacher.getStudentListByClass);
 router.get('/getStudentList',teacher.getStudentList);
-router.put('/changeStdCheck',teacher.changStudentCheck);
-router.put('/changeStdInfo',teacher.changStudentInfo);
+router.get('/searchStd',teacher.searchStd);
+router.put('/changeStdInfo',teacher.changeStdInfo);
 
 router.post('/addHomeWork',teacher.addHomeWork);
 router.get('/getHomeWork',teacher.getHomeWork);
@@ -26,7 +26,7 @@ router.put('/commitNotice',teacher.commitNotice);
 router.delete('/delNotice',teacher.delNotice);
 router.put('/changeNotice',teacher.changeNotice);
 
-router.get('/getClassScore',teacher.getClassScore);
+router.get('/getAllScore',teacher.getAllScore);
 
 router.get('/getStudentEva',teacher.getStudentEva);
 router.get('/getClassStudentEva',teacher.getClassStudentEva);
