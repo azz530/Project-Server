@@ -43,4 +43,6 @@ router.get('/getActivity',userinfo.getActivity);
 
 router.get('/getExamInfo',userinfo.getExamInfo);
 router.get('/getStdEva',userinfo.getStdEva);
+
+router.get('/getChildrenInfo',userinfo.getChildrenInfo);
 module.exports = router;

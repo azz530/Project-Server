@@ -1,4 +1,5 @@
-const { now } = require('moment');
+const { now, defineLocale } = require('moment');
+const { end } = require('../db/index.js');
 const db = require('../db/index.js');
 const tools = require('../utils/tools.js');
 
@@ -442,36 +443,84 @@ exports.addCourse = (req, res) => {
         }
     })
 }
-exports.addCourseStd = (req,res) =>{
+exports.addCourseStd = (req, res) => {
     const course_id = parseInt(req.query.course_id);
     const list = req.body;
     const sql = 'select student_id from score where course_id = ?';
     const sql1 = 'insert into score (student_id,course_id) values ?';
-    db.query(sql,course_id,(err,results)=>{
-        if(err){
+    const sql2 = "delete from score where student_id in (?) and course_id = ?";
+    db.query(sql, course_id, (err, results) => {
+        if (err) {
             return res.cc(err.message);
         } else {
             results = JSON.parse(JSON.stringify(results));
             let oldArr = [];
-            results.map(item=>{
+            results.map(item => {
                 oldArr.push(item.student_id);
             })
-            let newArr = list.filter(item=>{
-                if(!oldArr.includes(item)) return item;
+            let delArr = oldArr.filter(item => {
+                if (!list.includes(item)) return item;
             })
-            let info = [];
-            newArr.map(item=>{
-                info.push([item,course_id]);
-            })
-            db.query(sql1,[info],(error,result)=>{
-                if(error){
-                    return res.cc(error.message);
-                } else if(result.affectedRows < 1){
-                    return res.cc('新增失败',402);
+            if (list.length > 0) {
+                let newArr = list.filter(item => {
+                    if (!oldArr.includes(item)) return item;
+                })
+                let info = [];
+                newArr.map(item => {
+                    info.push([item, course_id]);
+                })
+                if (delArr.length > 0&&info.length<=0) {
+                    const delInfo = [];
+                    delArr.map(item => {
+                        delInfo.push(item.toString());
+                    })
+                    db.query(sql2, [delInfo, course_id], (err1, result1) => {
+                        if (err1) {
+                            return res.cc(err1.message);
+                        } else if (result1.affectedRows <= 0) {
+                            return res.cc('删除失败', 400);
+                        } else {
+                            return res.cc('删除成功', 200);
+                        }
+                    })
+                } else if (delArr.length > 0 && info.length > 0) {
+                    const delInfo = [];
+                    delArr.map(item => {
+                        delInfo.push(item.toString());
+                    })
+                    db.query(sql2, [delInfo, course_id], (err1, result1) => {
+                        if (err1) {
+                            return res.cc(err1.message);
+                        } else if (result1.affectedRows <= 0) {
+                            return res.cc('删除失败', 400);
+                        } else {
+                            db.query(sql1, [info], (error, result) => {
+                                if (error) {
+                                    return res.cc(error.message);
+                                } else if (result.affectedRows < 1) {
+                                    return res.cc('新增失败', 402);
+                                } else {
+                                    return res.cc('新增成功', 200);
+                                }
+                            })
+                        }
+                    })
                 } else {
-                    return res.cc('新增成功',200);
+                    db.query(sql1, [info], (error, result) => {
+                        if (error) {
+                            return res.cc(error.message);
+                        } else if (result.affectedRows < 1) {
+                            return res.cc('新增失败', 402);
+                        } else {
+                            return res.cc('新增成功', 200);
+                        }
+                    })
                 }
-            })
+            } else {
+                return res.cc('修改失败',400);
+            }
+
+
         }
     })
 }
@@ -501,56 +550,56 @@ exports.getCourseInfo = (req, res) => {
         }
     })
 }
-exports.getCourseStd = (req,res) =>{
+exports.getCourseStd = (req, res) => {
     const course_id = req.query.course_id;
     const sql = 'select t1.student_id,t1.student_name,t1.sex,t4.class_name from student t1 right join score t2 on t1.student_id = t2.student_id right join course t3 on t2.course_id = t3.course_id right join class t4 on t1.class_id = t4.class_id where t2.course_id = ?';
-    db.query(sql,course_id,(err,results)=>{
-        if(err){
+    db.query(sql, course_id, (err, results) => {
+        if (err) {
             return res.cc(err.message);
-        } else if(results.length === 0){
-            return res.cc('查询失败',400);
+        } else if (results.length === 0) {
+            return res.cc('查询失败', 400);
         } else {
             results = JSON.parse(JSON.stringify(results));
             return res.send({
-                status:200,
-                message:'查询成功',
-                data:results,
+                status: 200,
+                message: '查询成功',
+                data: results,
             })
         }
     })
 }
-exports.getClassStd = (req,res) =>{
+exports.getClassStd = (req, res) => {
     const sql = 'select class_id,class_name from class';
     const sql1 = 'select student_id,student_name,class_id from student';
-    db.query(sql,(err,classInfo)=>{
-        if(err){
+    db.query(sql, (err, classInfo) => {
+        if (err) {
             return res.cc(err.message);
-        } else if(classInfo.length === 0){
-            return res.cc('查询错误',400);
+        } else if (classInfo.length === 0) {
+            return res.cc('查询错误', 400);
         } else {
             classInfo = JSON.parse(JSON.stringify(classInfo));
-            db.query(sql1,(error,studentInfo)=>{
-                if(error){
+            db.query(sql1, (error, studentInfo) => {
+                if (error) {
                     return res.cc(error.message);
-                } else if(studentInfo.length === 0){
-                    return res.cc('查询错误',400);
+                } else if (studentInfo.length === 0) {
+                    return res.cc('查询错误', 400);
                 } else {
                     studentInfo = JSON.parse(JSON.stringify(studentInfo));
-                    const result = classInfo.map((i)=>{
-                        const obj = {...i};
-                        const childrenArr = studentInfo.filter(item=>item.class_id === i.class_id);
+                    const result = classInfo.map((i) => {
+                        const obj = { ...i };
+                        const childrenArr = studentInfo.filter(item => item.class_id === i.class_id);
                         obj.children = childrenArr;
                         return obj
                     })
-                    result.map((i)=>{
-                        i.children.map((item)=>{
+                    result.map((i) => {
+                        i.children.map((item) => {
                             item.class_name = item.student_id + ' ' + item.student_name;
                         })
                     })
                     return res.send({
-                        status:200,
-                        message:'查询成功',
-                        data:result
+                        status: 200,
+                        message: '查询成功',
+                        data: result
                     })
                 }
             })
@@ -596,7 +645,7 @@ exports.addExam = (req, res) => {
         exam_message: req.body.exam_message,
         start_time: tools.formatDate(req.body.exam_time[0], 'YYYY-MM-DD'),
         end_time: tools.formatDate(req.body.exam_time[1], 'YYYY-MM-DD'),
-        time:new Date(),
+        time: new Date(),
     }
     const Sql = 'select *from exam where exam_id =?';
     const sql = 'insert into exam set ?';
@@ -630,7 +679,7 @@ exports.getExamInfo = (req, res) => {
             return res.cc('查询失败', 400);
         } else {
             results = JSON.parse(JSON.stringify(results));
-            results.map((i)=>{
+            results.map((i) => {
                 i.start_time = tools.formatDate(i.start_time, 'YYYY-MM-DD');
                 i.end_time = tools.formatDate(i.end_time, 'YYYY-MM-DD');
             })

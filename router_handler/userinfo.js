@@ -287,6 +287,7 @@ exports.commitHomeWork = async (req, res) => {
         work_pic,
         work_status: 1,
         work_content,
+        time:new Date(),
     }
     const sql = 'insert into workinfo set ?'
     const sql1 = 'update homework set finish_num = (select count(*) from workinfo where work_status = 1 and work_id = ?) where work_id = ?'
@@ -409,6 +410,47 @@ exports.getStdEva = async(req,res) =>{
                 status:200,
                 message:'查询成功',
                 data:results,
+            })
+        }
+    })
+}
+
+exports.getChildrenInfo = async(req,res) =>{
+    const student_id = req.query.student_id;
+    const sql = 'select t1.id,t1.work_pic,t1.work_content,t1.time,t2.work_name,t2.work_details,t2.work_time,t2.end_time,t3.teacher_name,t4.course_name from workinfo t1 join homework t2 on t1.work_id = t2.work_id join teacher t3 on t2.teacher_id = t3.teacher_id join course t4 on t3.course_id = t4.course_id where t1.student_id = ? order by time desc';
+    const sql1 = 'select * from evaluate t1 right join teacher t2 on t1.teacher_id = t2.teacher_id where student_id = ? order by public_time desc';
+    db.query(sql,student_id,(err,results1)=>{
+        if(err){
+            return res.cc(err.message);
+        } else if(results1.length <= 0 ){
+            return res.cc('查询失败',400);
+        } else {
+            results1 = JSON.parse(JSON.stringify(results1));
+            results1.map(item=>{
+                item.time = tools.formatDate(item.time,'YYYY-MM-DD hh:mm:ss');
+                item.work_time = tools.formatDate(item.work_time,'YYYY-MM-DD hh:mm:ss');
+                item.end_time = tools.formatDate(item.end_time,'YYYY-MM-DD hh:mm:ss');
+                if(item.work_pic){
+                    item.work_pic = item.work_pic.split(',');
+                }
+            })
+            db.query(sql1,student_id,(err,result2)=>{
+                if(err){
+                    return res.cc(err.message);
+                } else if(results1.length <= 0 ){
+                    return res.cc('查询失败',400);
+                } else {
+                    result2 = JSON.parse(JSON.stringify(result2));
+                    result2.map(item=>{
+                        item.public_time = tools.formatDate(item.public_time,'YYYY-MM-DD hh:mm:ss');
+                    })
+                    return res.send({
+                        status:200,
+                        message:'查询成功',
+                        workList:results1,
+                        evaList:result2,
+                    })
+                }
             })
         }
     })
