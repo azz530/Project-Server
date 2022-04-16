@@ -256,14 +256,18 @@ exports.getClassStudent = (req, res) => {
 exports.getTeacherInfo = (req, res) => {
     let pageNum = parseInt(req.query.pageNum) - 1;
     let pageSize = parseInt(req.query.pageSize);
-    const sqlTotal = 'select count(*) as total,t1.teacher_id,t1.teacher_name,t1.sex,t2.course_name from teacher t1 join course t2 on t1.course_id = t2.course_id';
-    const sql = 'select t1.teacher_id,t1.teacher_name,t1.sex,t2.course_name from teacher t1 join course t2 on t1.course_id = t2.course_id order by t1.teacher_id limit ?,?';
+    const sqlTotal = 'select count(*) as total from teacher';
+    const sql = 'select t1.teacher_id,t1.teacher_name,t1.sex,t1.birthday,t1.address,t2.course_name from teacher t1 left join course t2 on t1.teacher_id = t2.teacher_id group by t1.teacher_id order by t1.teacher_id limit ?,?';
     db.query(sql, [pageNum * pageSize, pageSize], (err, results) => {
         if (err) {
             return res.cc(err.message);
         } else if (results.length < 0) {
             return res.cc('查询失败', 4011);
         } else {
+            results = JSON.parse(JSON.stringify(results));
+            results.map(item=>{
+                item.birthday = tools.formatDate(item.birthday,'YYYY-MM-DD');
+            })
             db.query(sqlTotal, (error, total) => {
                 if (error) {
                     return res.cc(error.message);
@@ -323,9 +327,9 @@ exports.addTeacher = (req, res) => {
         teacher_id: parseInt(req.body.teacher_id),
         teacher_name: req.body.teacher_name,
         sex: req.body.sex,
+        birthday:req.body.birthday,
+        address:req.body.address,
     }
-    const course_name = req.body.course_name;
-    const sql1 = 'select course_id from course where course_name =?';
     const selSql = 'select *from teacher where teacher_id =?';
     const sql = 'insert into teacher set ?';
     db.query(selSql, TeacherInfo.teacher_id, (err, results) => {
@@ -334,23 +338,13 @@ exports.addTeacher = (req, res) => {
         } else if (results.length > 0) {
             return res.cc('该工号已存在', 402);
         } else {
-            db.query(sql1, course_name, (mis, course_id) => {
-                if (mis) {
-                    return res.cc(mis.message);
-                } else if (course_id.length !== 1) {
-                    return res.cc('查询失败', 400);
+            db.query(sql, TeacherInfo, (error, result) => {
+                if (error) {
+                    return res.cc(error.message);
+                } else if (result.affectedRows != 1) {
+                    return res.cc('新增失败', 400);
                 } else {
-                    course_id = JSON.parse(JSON.stringify(course_id));
-                    TeacherInfo.course_id = course_id[0].course_id;
-                    db.query(sql, TeacherInfo, (error, result) => {
-                        if (error) {
-                            return res.cc(error.message);
-                        } else if (result.affectedRows != 1) {
-                            return res.cc('新增失败', 400);
-                        } else {
-                            return res.cc('新增成功', 200);
-                        }
-                    })
+                    return res.cc('新增成功', 200);
                 }
             })
         }
@@ -358,30 +352,20 @@ exports.addTeacher = (req, res) => {
 }
 exports.changeTeacherInfo = (req, res) => {
     let teacher_id = parseInt(req.body.teacher_id);
-    const course_name = req.body.course_name;
     const changeInfo = {
         teacher_name: req.body.teacher_name,
         sex: req.body.sex,
+        birthday:req.body.birthday,
+        address:req.body.address,
     }
-    const sql1 = 'select course_id from course where course_name =?'
     const sql = 'update teacher set ? where teacher_id =?';
-    db.query(sql1, course_name, (mis, course_id) => {
-        if (mis) {
-            return res.cc(mis.message);
-        } else if (course_id.length !== 1) {
-            return res.cc('查询失败', 400);
+    db.query(sql, [changeInfo, teacher_id], (err, results) => {
+        if (err) {
+            return res.cc(err.message);
+        } else if (results.affectedRows !== 1) {
+            return res.cc('修改失败', 400);
         } else {
-            course_id = JSON.parse(JSON.stringify(course_id));
-            changeInfo.course_id = course_id[0].course_id;
-            db.query(sql, [changeInfo, teacher_id], (err, results) => {
-                if (err) {
-                    return res.cc(err.message);
-                } else if (results.affectedRows !== 1) {
-                    return res.cc('修改失败', 400);
-                } else {
-                    return res.cc('修改成功', 200);
-                }
-            })
+            return res.cc('修改成功', 200);
         }
     })
 }
@@ -418,10 +402,12 @@ exports.delTeacher = (req, res) => {
 
 
 exports.addCourse = (req, res) => {
+    console.log(req.body);
     const CourseInfo = {
         course_id: parseInt(req.body.course_id),
         course_name: req.body.course_name,
-        course_message: req.body.course_message
+        course_message: req.body.course_message,
+        teacher_id: parseInt(req.body.teacher_id),
     }
     const Sql = 'select *from course where course_id =?';
     const sql = 'insert into course set ?';
@@ -439,6 +425,23 @@ exports.addCourse = (req, res) => {
                 } else {
                     return res.cc('新增课程成功', 200);
                 }
+            })
+        }
+    })
+}
+exports.getTeacher = (req, res) => {
+    const sql = 'select teacher_id,teacher_name from teacher';
+    db.query(sql, (err, results) => {
+        if (err) {
+            return res.cc(err.message);
+        } else if (results.length <= 0) {
+            return res.cc('查询失败', 400);
+        } else {
+            results = JSON.parse(JSON.stringify(results));
+            return res.send({
+                status: 200,
+                message: '查询成功',
+                data: results,
             })
         }
     })
@@ -469,7 +472,7 @@ exports.addCourseStd = (req, res) => {
                 newArr.map(item => {
                     info.push([item, course_id]);
                 })
-                if (delArr.length > 0&&info.length<=0) {
+                if (delArr.length > 0 && info.length <= 0) {
                     const delInfo = [];
                     delArr.map(item => {
                         delInfo.push(item.toString());
@@ -517,7 +520,7 @@ exports.addCourseStd = (req, res) => {
                     })
                 }
             } else {
-                return res.cc('修改失败',400);
+                return res.cc('修改失败', 400);
             }
 
 
@@ -528,7 +531,7 @@ exports.getCourseInfo = (req, res) => {
     let pageNum = parseInt(req.query.pageNum) - 1;
     let pageSize = parseInt(req.query.pageSize);
     const Sql = 'select count(*) as total from course';
-    const sql = 'select t2.course_id,t2.course_name,t2.course_message,count(t1.course_id) as num from score t1 right join course t2 on t1.course_id = t2.course_id group by t1.course_id order by num desc limit ?,?';
+    const sql = 'select t2.course_id,t2.course_name,t2.course_message,t3.teacher_name,t3.teacher_id,count(t1.course_id) as num from score t1 right join course t2 on t1.course_id = t2.course_id left join teacher t3 on t2.teacher_id = t3.teacher_id group by t2.course_id order by num desc limit ?,?';
     db.query(sql, [pageNum * pageSize, pageSize], (err, results) => {
         if (err) {
             return res.cc(err.message);
@@ -610,7 +613,8 @@ exports.changeCourseInfo = (req, res) => {
     let course_id = parseInt(req.body.course_id);
     const changeInfo = {
         course_name: req.body.course_name,
-        course_message: req.body.course_message
+        course_message: req.body.course_message,
+        teacher_id: parseInt(req.body.teacher_id),
     }
     const sql = 'update course set ? where course_id =?';
     db.query(sql, [changeInfo, course_id], (err, results) => {

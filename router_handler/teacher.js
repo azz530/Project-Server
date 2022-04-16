@@ -6,8 +6,8 @@ exports.getStudentListByClass = (req, res) => {
     const teacher_id = req.query.teacher_id;
     let pageNum = parseInt(req.query.pageNum) - 1;
     let pageSize = parseInt(req.query.pageSize);
-    const allSql = 'select count(*) as total,t1.student_id,t1.student_name,t1.sex,t4.class_name,t1.student_check,t1.birthday,t1.address from student t1 left join score t2 on t1.student_id = t2.student_id join teacher t3 on t2.course_id = t3.course_id join class t4 on t1.class_id = t4.class_id where t3.teacher_id = ? and t1.class_id=?';
-    const slSql = 'select t1.student_id,t1.student_name,t1.sex,t4.class_name,t1.student_check,t1.birthday,t1.address from student t1 left join score t2 on t1.student_id = t2.student_id join teacher t3 on t2.course_id = t3.course_id join class t4 on t1.class_id = t4.class_id where t3.teacher_id = ? and t1.class_id=? limit ?,?';
+    const allSql = 'select count(*) as total from student t1 left join score t2 on t1.student_id = t2.student_id join course t3 on t2.course_id = t3.course_id join class t4 on t1.class_id = t4.class_id join teacher t5 on t3.teacher_id = t5.teacher_id where t3.teacher_id = ? and t1.class_id=?';
+    const slSql = 'select t1.student_id,t1.student_name,t1.sex,t4.class_name,t1.student_check,t1.birthday,t1.address from student t1 left join score t2 on t1.student_id = t2.student_id join course t3 on t2.course_id = t3.course_id join class t4 on t1.class_id = t4.class_id join teacher t5 on t3.teacher_id = t5.teacher_id where t3.teacher_id = ? and t1.class_id=? limit ?,?';
     db.query(slSql, [teacher_id, class_id, pageNum * pageSize, pageSize], (err, results) => {
         if (err) {
             return res.cc(err.message);
@@ -36,7 +36,7 @@ exports.getStudentListByClass = (req, res) => {
 }
 exports.getClass = (req, res) => {
     const teacher_id = req.query.teacher_id;
-    const sql = 'select distinct t4.class_id,t4.class_name from student t1 left join score t2 on t1.student_id = t2.student_id join teacher t3 on t2.course_id = t3.course_id join class t4 on t1.class_id = t4.class_id where t3.teacher_id = ?';
+    const sql = 'select distinct t4.class_id,t4.class_name from student t1 left join score t2 on t1.student_id = t2.student_id join course t3 on t2.course_id = t3.course_id join class t4 on t1.class_id = t4.class_id join teacher t5 on t3.teacher_id = t5.teacher_id where t3.teacher_id = ?';
     db.query(sql, teacher_id, (err, results) => {
         if (err) {
             return res.cc(err.message);
@@ -55,12 +55,12 @@ exports.getStudentList = (req, res) => {
     let pageNum = parseInt(req.query.pageNum) - 1;
     let pageSize = parseInt(req.query.pageSize);
     const teacher_id = parseInt(req.query.teacher_id);
-    const sql1 = 'select count(*) as total,t1.student_id,t1.student_name,t1.sex,t4.class_name,t1.student_check,t1.birthday,t1.address from student t1 left join score t2 on t1.student_id = t2.student_id join teacher t3 on t2.course_id = t3.course_id join class t4 on t1.class_id = t4.class_id where t3.teacher_id = ?';
-    const slSql = 'select t1.student_id,t1.student_name,t1.sex,t4.class_name,t1.student_check,t1.birthday,t1.address from student t1 left join score t2 on t1.student_id = t2.student_id join teacher t3 on t2.course_id = t3.course_id join class t4 on t1.class_id = t4.class_id where t3.teacher_id = ? limit ?,?';
+    const sql1 = 'select count(*) as total from student t1 left join score t2 on t1.student_id = t2.student_id join course t3 on t2.course_id = t3.course_id join class t4 on t1.class_id = t4.class_id join teacher t5 on t3.teacher_id = t5.teacher_id where t3.teacher_id = ?';
+    const slSql = 'select t1.student_id,t1.student_name,t1.sex,t4.class_name,t1.birthday,t1.address from student t1 left join score t2 on t1.student_id = t2.student_id join course t3 on t2.course_id = t3.course_id join class t4 on t1.class_id = t4.class_id join teacher t5 on t3.teacher_id = t5.teacher_id where t3.teacher_id = ? limit ?,?';
     db.query(slSql, [teacher_id, pageNum * pageSize, pageSize], (err, results) => {
         if (err) {
             return res.cc(err, 400);
-        } else if (results.length == 0) {
+        } else if (results.length <= 0) {
             return res.cc('查询失败', 404);
         } else {
             results.map(item=>{
@@ -105,8 +105,8 @@ exports.searchStd = (req, res) => {
     let reg = /^\d{6,10}$/;
     const str = req.query.str;
     const teacher_id = req.query.teacher_id;
-    const sql = 'select t1.student_id,t1.student_name,t1.sex,t1.birthday,t2.class_name from student t1 left join class t2 on t1.class_id = t2.class_id left join score t3 on t1.student_id = t3.student_id left join course t4 on t3.course_id = t4.course_id left join teacher t5 on t4.course_id = t5.course_id where t5.teacher_id = ? and t1.student_id = ?';
-    const sql1 = "select t1.student_id,t1.student_name,t1.sex,t1.birthday,t2.class_name from student t1 left join class t2 on t1.class_id = t2.class_id left join score t3 on t1.student_id = t3.student_id left join course t4 on t3.course_id = t4.course_id left join teacher t5 on t4.course_id = t5.course_id where t5.teacher_id = ? and t1.student_name like ?";
+    const sql = 'select t1.student_id,t1.student_name,t1.sex,t1.birthday,t2.class_name from student t1 left join class t2 on t1.class_id = t2.class_id left join score t3 on t1.student_id = t3.student_id left join course t4 on t3.course_id = t4.course_id left join teacher t5 on t4.teacher_id = t5.teacher_id where t5.teacher_id = ? and t1.student_id = ?';
+    const sql1 = "select t1.student_id,t1.student_name,t1.sex,t1.birthday,t2.class_name from student t1 left join class t2 on t1.class_id = t2.class_id left join score t3 on t1.student_id = t3.student_id left join course t4 on t3.course_id = t4.course_id left join teacher t5 on t4.teacher_id = t5.teacher_id where t5.teacher_id = ? and t1.student_name like ?";
     if (reg.test(str)) {
         let student_id = parseInt(str);
         db.query(sql, [teacher_id,student_id], (err, results) => {
@@ -286,8 +286,8 @@ exports.getStdScore = (req, res) => {
     let pageNum = parseInt(req.query.pageNum) - 1;
     let pageSize = parseInt(req.query.pageSize);
     let teacher_id = parseInt(req.query.teacher_id);
-    const sql = 'select count(*) as total from student t1 left join score t2 on t1.student_id = t2.student_id join course t3 on t2.course_id = t3.course_id join class t4 on t1.class_id = t4.class_id join teacher t5 on t3.course_id = t5.course_id where t5.teacher_id = ?'
-    const Sql = 'select t1.student_id,t1.student_name,t1.sex,t4.class_name,t2.score,t3.course_id,t3.course_name from student t1 left join score t2 on t1.student_id = t2.student_id join course t3 on t2.course_id = t3.course_id join class t4 on t1.class_id = t4.class_id join teacher t5 on t3.course_id = t5.course_id where t5.teacher_id = ? limit ?,?';
+    const sql = 'select count(*) as total from student t1 left join score t2 on t1.student_id = t2.student_id join course t3 on t2.course_id = t3.course_id join class t4 on t1.class_id = t4.class_id join teacher t5 on t3.teacher_id = t5.teacher_id where t5.teacher_id = ?'
+    const Sql = 'select t1.student_id,t1.student_name,t1.sex,t4.class_name,t2.score,t3.course_id,t3.course_name from student t1 left join score t2 on t1.student_id = t2.student_id join course t3 on t2.course_id = t3.course_id join class t4 on t1.class_id = t4.class_id join teacher t5 on t3.teacher_id = t5.teacher_id where t5.teacher_id = ? limit ?,?';
     db.query(Sql, [teacher_id, pageNum * pageSize, pageSize], (err, results) => {
         if (err) {
             return res.cc(err.message);
@@ -316,8 +316,8 @@ exports.getClassStdScore = (req, res) => {
     let pageSize = parseInt(req.query.pageSize);
     const class_id = parseInt(req.query.class_id);
     const teacher_id = parseInt(req.query.teacher_id);
-    const sql = 'select count(*) as total from student t1 left join score t2 on t1.student_id = t2.student_id join course t3 on t2.course_id = t3.course_id join class t4 on t1.class_id = t4.class_id join teacher t5 on t3.course_id = t5.course_id where t5.teacher_id = ? and t1.class_id = ?';
-    const slSql = 'select t1.student_id,t1.student_name,t4.class_name,t1.sex,t2.score,t3.course_id,t3.course_name from student t1 left join score t2 on t1.student_id = t2.student_id join course t3 on t2.course_id = t3.course_id join class t4 on t1.class_id = t4.class_id join teacher t5 on t3.course_id = t5.course_id where t5.teacher_id = ? and t1.class_id = ? limit ?,?';
+    const sql = 'select count(*) as total from student t1 left join score t2 on t1.student_id = t2.student_id join course t3 on t2.course_id = t3.course_id join class t4 on t1.class_id = t4.class_id join teacher t5 on t3.teacher_id = t5.teacher_id where t5.teacher_id = ? and t1.class_id = ?';
+    const slSql = 'select t1.student_id,t1.student_name,t4.class_name,t1.sex,t2.score,t3.course_id,t3.course_name from student t1 left join score t2 on t1.student_id = t2.student_id join course t3 on t2.course_id = t3.course_id join class t4 on t1.class_id = t4.class_id join teacher t5 on t3.teacher_id = t5.teacher_id where t5.teacher_id = ? and t1.class_id = ? limit ?,?';
     db.query(slSql, [teacher_id, class_id, pageNum * pageSize, pageSize], (err, results) => {
         if (err) {
             return res.cc(err.message);
@@ -483,7 +483,7 @@ exports.changeNotice = (req, res) => {
 exports.getAllScore = (req, res) => {
     const teacher_id = req.query.teacher_id;
     const exam_id = req.query.exam_id;
-    const sql = "select count(case when t1.score<60 then 'id' else null end) as d, count(case when t1.score >=60 and t1.score <70 then 'id' else null end) as c, count(case when t1.score>=70 and t1.score < 90 then 'id' else null end) as b,count(case when t1.score >= 90 and t1.score <=100 then 'id' else null end) as a from score t1 left join course t2 on t1.course_id = t2.course_id right join teacher t3 on t2.course_id = t3.course_id where t3.teacher_id = ? and t1.exam_id = ?";
+    const sql = "select count(case when t1.score<60 then 'id' else null end) as d, count(case when t1.score >=60 and t1.score <70 then 'id' else null end) as c, count(case when t1.score>=70 and t1.score < 90 then 'id' else null end) as b,count(case when t1.score >= 90 and t1.score <=100 then 'id' else null end) as a from score t1 left join course t2 on t1.course_id = t2.course_id right join teacher t3 on t2.teacher_id = t3.teacher_id where t3.teacher_id = ? and t1.exam_id = ?";
     db.query(sql, [teacher_id,exam_id], (err, results) => {
         if (err) {
             return res.cc(err.message);
@@ -501,7 +501,7 @@ exports.getAllScore = (req, res) => {
 
 exports.getStudentEva = (req, res) => {
     const teacher_id = req.query.teacher_id;
-    const sql = 'select t2.student_id,id,content,course_stars,work_stars,think_stars,student_name,public_time,class_name from evaluate t1,student t2,class t3 where t1.student_id = t2.student_id and t2.class_id = t3.class_id and t1.teacher_id = ? order by public_time limit ?,?';
+    const sql = 'select t2.student_id,id,content,course_stars,work_stars,think_stars,student_name,public_time,class_name from evaluate t1,student t2,class t3 where t1.student_id = t2.student_id and t2.class_id = t3.class_id and t1.teacher_id = ? order by public_time desc limit ?,?';
     const sql1 = 'select count(*) as total from evaluate t1,student t2,class t3 where t1.student_id = t2.student_id and t2.class_id = t3.class_id and t1.teacher_id = ? ';
     let pageNum = parseInt(req.query.pageNum) - 1;
     let pageSize = parseInt(req.query.pageSize);
@@ -612,6 +612,19 @@ exports.addEvaluate = (req, res) => {
             return res.cc('新增评价失败', 400);
         } else {
             return res.cc('新增评级成功', 200)
+        }
+    })
+}
+exports.delEvaluate = (req,res) =>{
+    let id = req.query.id;
+    const sql = 'delete from evaluate where id = ?';
+    db.query(sql, id, (err, results) => {
+        if (err) {
+            return res.cc(err.message);
+        } else if (results.affectedRows != 1) {
+            return res.cc('删除失败', 400);
+        } else {
+            return res.cc('删除成功', 200);
         }
     })
 }

@@ -24,6 +24,7 @@ router.delete('/delTeacher', admin.delTeacher);
 router.get('/getCourse', admin.getCourse);
 
 
+router.get('/getTeacher', admin.getTeacher);
 router.get('/getCourseInfo', admin.getCourseInfo);
 router.get('/getCourseStd', admin.getCourseStd);
 router.get('/getClassStd', admin.getClassStd);

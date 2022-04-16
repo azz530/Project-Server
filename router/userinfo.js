@@ -19,8 +19,7 @@ router.post('/uploadAvatar',upload.single('avatar'),userinfo.uploadAvatar);
 router.put('/addTags',userinfo.addTags);
 router.put('/delTags',userinfo.delTags);
 router.put('/changeUserInfo',userinfo.changeUserInfo);
-router.get('/checkIdentity',userinfo.checkIdentity);
-router.put('/commitIDResult',userinfo.commitIDResult);
+
 router.get('/getNotice',userinfo.getNotice);
 router.get('/getHomeWork',userinfo.getHomeWork);
 router.get('/getDetailsHW',userinfo.getDetailsHW);
@@ -43,6 +42,7 @@ router.get('/getActivity',userinfo.getActivity);
 
 router.get('/getExamInfo',userinfo.getExamInfo);
 router.get('/getStdEva',userinfo.getStdEva);
+router.get('/getMyCourse',userinfo.getMyCourse);
 
 router.get('/getChildrenInfo',userinfo.getChildrenInfo);
 module.exports = router;

@@ -33,6 +33,7 @@ router.get('/getClassStudentEva',teacher.getClassStudentEva);
 router.get('/getStudentEvaById',teacher.getStudentEvaById);
 router.post('/editEvaluate',teacher.editEvaluate);
 router.post('/addEvaluate',teacher.addEvaluate);
+router.delete('/delEvaluate',teacher.delEvaluate);
 
 
 module.exports = router;
