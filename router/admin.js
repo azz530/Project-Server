@@ -14,6 +14,7 @@ router.delete('/delStudent', admin.delStudent);
 router.get('/getGradeInfo', admin.getGradeInfo);
 router.get('/getClassInfo', admin.getClassInfo);
 router.get('/getClassStudent', admin.getClassStudent);
+router.put('/editClassTeacher', admin.editClassTeacher);
 
 
 router.get('/getTeacherInfo', admin.getTeacherInfo);

@@ -4,6 +4,7 @@ const multer = require('multer');
 const userinfo = require('../router_handler/userinfo.js');
 
 router.get('/getUserInfo',userinfo.getUserInfo);
+
 router.get('/getUserID',userinfo.getUserID);
 let storage = multer.diskStorage({
     destination:function(req,file,cb){

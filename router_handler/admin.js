@@ -223,6 +223,20 @@ exports.getClassInfo = (req, res) => {
         }
     })
 }
+exports.editClassTeacher = (req,res) =>{
+    const teacher_id = req.body.teacher_id;
+    const class_id = req.body.class_id;
+    const sql = 'update class set teacher_id =? where class_id =?';
+    db.query(sql,[teacher_id,class_id],(err,result)=>{
+        if(err){
+            return res.cc(err.message);
+        } else if(result.affectedRows !== 1){
+            return res.cc('设置失败',400);
+        } else {
+            return res.cc('设置成功',200);
+        }
+    })
+}
 exports.getClassStudent = (req, res) => {
     const class_id = req.query.class_id;
     let pageNum = parseInt(req.query.pageNum) - 1;
@@ -402,7 +416,6 @@ exports.delTeacher = (req, res) => {
 
 
 exports.addCourse = (req, res) => {
-    console.log(req.body);
     const CourseInfo = {
         course_id: parseInt(req.body.course_id),
         course_name: req.body.course_name,
@@ -839,8 +852,6 @@ exports.changeUserInfo = (req, res) => {
         birthday: req.body.birthday,
         address: req.body.address,
     }
-    console.log(id);
-    console.log(changeInfo);
     const sql = 'update users set ? where id =?';
     db.query(sql, [changeInfo, id], (err, results) => {
         if (err) {

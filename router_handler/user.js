@@ -119,3 +119,101 @@ exports.getUserID = (req,res) =>{
         changeTUser();
     }
 }
+exports.checkPsw = async(req,res) =>{
+    const id = req.query.id;
+    const password = req.query.oldPassword;
+    const sql  = 'select password from users where id =? ';
+    db.query(sql,id,(err,results)=>{
+        if(err){
+            return res.cc(err.message);
+        } else if(results.length <= 0){
+            return res.cc('查询失败',400);
+        } else {
+            results = JSON.parse(JSON.stringify(results));
+            const check = bcryptjs.compareSync(password,results[0].password);
+            if(!check){
+                return res.cc('密码错误',401);
+            } else {
+                return res.cc('密码正确',200);
+            }
+        }
+    })
+}
+exports.checkUser = async(req,res) =>{
+    const username = req.query.username;
+    const sql = 'select * from users where username = ?';
+    db.query(sql,username,(err,results)=>{
+        if(err){
+            return res.cc(err.message);
+        } else if(results.length<=0){
+            return res.cc('未查询到该用户',400);
+        } else {
+            return res.send({
+                status:200,
+                message:'该用户存在',
+            });
+        }
+    })
+}
+exports.changePsw = async(req,res)=>{
+    const password = req.body.newPassword;
+    const id = parseInt(req.query.id);
+    const sql = 'update users set password = ? where id = ?';
+    const newpassword = bcryptjs.hashSync(password,10);
+    db.query(sql,[newpassword,id],(err,results)=>{
+        if(err){
+            return res.cc(err.message);
+        } else if(results.affectedRows !== 1){
+            return res.cc('修改失败',400);
+        } else {
+            return res.cc('修改成功',200);
+        }
+    })
+}
+exports.forgetPsw = async(req,res)=>{
+    const identity = req.body.identity;
+    const username = req.body.username;
+    const password = req.body.password;
+    const newPassword = bcryptjs.hashSync(password,10);
+    const sql = 'select * from users where username = ? and identity =? and identity_id =?';
+    const sql1 = 'select * from users where username = ? and identity =?';
+    const sql3 = 'update users set password =? where username =?';
+    if(identity === '学生' || identity === '老师'){
+        const identity_id = parseInt(req.body.identity_id);
+        db.query(sql,[username,identity,identity_id],(err1,result1)=>{
+            if(err1){
+                return res.cc(err1.message);
+            } else if(result1.length<=0){
+                return res.cc('身份信息失败',402);
+            } else {
+                db.query(sql3,[newPassword,username],(err2,result2)=>{
+                    if(err2){
+                        return res.cc(err2.message);
+                    } else if(result2.affectedRows !== 1){
+                        return res.cc('修改密码失败',400);
+                    } else {
+                        return res.cc('修改密码成功',200);
+                    }
+                })
+            }
+        })
+    } else {
+        db.query(sql1,[username,identity],(err1,result1)=>{
+            if(err1){
+                return res.cc(err1.message);
+            } else if(result1.length<=0){
+                return res.cc('身份信息失败',402);
+            } else {
+                db.query(sql3,[newPassword,username],(err2,result2)=>{
+                    if(err2){
+                        return res.cc(err2.message);
+                    } else if(result2.affectedRows !==1 ){
+                        return res.cc('修改密码失败',400);
+                    } else {
+                        return res.cc('修改密码成功',200);
+                    }
+                })
+            }
+        })
+    }
+}

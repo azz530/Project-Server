@@ -18,6 +18,7 @@ exports.getUserInfo = async (req, res) => {
         }
     });
 }
+
 exports.getUserID = async (req, res) => {
     const identity = req.query.identity;
     const identity_id = parseInt(req.query.identity_id);

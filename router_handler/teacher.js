@@ -90,7 +90,6 @@ exports.changeStdInfo = (req, res) => {
         address: req.body.address,
     };
     let student_id = req.body.student_id;
-    console.log('ssss');
     db.query(sql, [changeList, student_id], (err, results) => {
         if (err) {
             return res.cc(err.message);
@@ -349,7 +348,6 @@ exports.changeStdScore = (req, res) => {
         if (err) {
             return res.cc(err.message);
         } else if (results.affectedRows !== 1) {
-            console.log(results);
             return res.cc('修改失败', 400);
         } else {
             return res.cc('修改成功', 200);
@@ -424,7 +422,6 @@ exports.getNotice = (req, res) => {
 }
 exports.commitNotice = (req, res) => {
     let notice_id = req.body.id;
-    console.log(notice_id);
     const sql = `update class_notice set notice_status = 1 where notice_id = ?`;
     const selectSql = 'select notice_status from class_notice where notice_id = ?';
     db.query(selectSql, notice_id, (err, results) => {
