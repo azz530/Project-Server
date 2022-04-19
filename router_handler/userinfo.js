@@ -164,8 +164,11 @@ exports.changeUserInfo = async (req, res) => {
 
 exports.getNotice = async (req, res) => {
     const student_id = parseInt(req.query.student_id);
-    const sql = 'select t1.notice_id,t1.notice_theme,t1.notice_details,t1.notice_time,t2.teacher_name from class_notice t1 left join teacher t2 on t1.teacher_id = t2.teacher_id join course t3 on t2.teacher_id = t3.teacher_id join score t4 on t3.course_id = t4.course_id  where t1.notice_status=1 and t4.student_id = ? order by t1.notice_time desc limit 0,5';
-    db.query(sql, student_id, (error, results) => {
+    let pageNum = parseInt(req.query.pageNum) - 1;
+    let pageSize = parseInt(req.query.pageSize);
+    const sql = 'select t1.notice_id,t1.notice_theme,t1.notice_details,t1.notice_time,t2.teacher_name from class_notice t1 left join teacher t2 on t1.teacher_id = t2.teacher_id join course t3 on t2.teacher_id = t3.teacher_id join score t4 on t3.course_id = t4.course_id  where t1.notice_status=1 and t4.student_id = ? order by t1.notice_time desc limit ?,?';
+    const sql1 = 'select count(*) as total from class_notice t1 left join teacher t2 on t1.teacher_id = t2.teacher_id join course t3 on t2.teacher_id = t3.teacher_id join score t4 on t3.course_id = t4.course_id  where t1.notice_status=1 and t4.student_id = ? order by t1.notice_time desc';
+    db.query(sql, [student_id,pageNum * pageSize, pageSize], (error, results) => {
         if (error) {
             return res.cc(error.message);
         } else if (results.length < 0) {
@@ -175,10 +178,17 @@ exports.getNotice = async (req, res) => {
                 results[i].details_time = tools.formatDate(results[i].notice_time, 'YYYY-MM-DD hh:mm:ss');
                 results[i].notice_time = tools.formatDate(results[i].notice_time, 'YYYY-MM-DD');
             }
-            return res.send({
-                status: 200,
-                message: '查询成功',
-                data: results
+            db.query(sql1,student_id,(err,total)=>{
+                if(err){
+                    return res.cc(err.message);
+                } else {
+                    return res.send({
+                        status: 200,
+                        message: '查询成功',
+                        data: results,
+                        total:total[0]['total'],
+                    })
+                }
             })
         }
     })
@@ -187,8 +197,11 @@ exports.getNotice = async (req, res) => {
 }
 exports.getHomeWork = async (req, res) => {
     const student_id = parseInt(req.query.student_id);
-    const sql = 'select t1.work_id,t1.work_name,t1.work_deadline,t1.work_time,t1.end_time,t1.work_details,t2.teacher_name,t3.course_name,t5.finishStatus from homework t1 left join teacher t2 on t1.teacher_id = t2.teacher_id join course t3 on t2.teacher_id = t3.teacher_id join score t4 on t3.course_id = t4.course_id left join workinfo t5 on t1.work_id = t5.work_id where t4.student_id = ? and t1.work_status = 1 order by t1.work_time desc';
-    db.query(sql, student_id, (err, results) => {
+    let pageNum = parseInt(req.query.pageNum) - 1;
+    let pageSize = parseInt(req.query.pageSize);
+    const sql = 'select t1.work_id,t1.work_name,t1.work_deadline,t1.work_time,t1.end_time,t1.work_details,t2.teacher_name,t3.course_name,t5.finishStatus,t5.eva_content,t5.stars from homework t1 left join teacher t2 on t1.teacher_id = t2.teacher_id join course t3 on t2.teacher_id = t3.teacher_id join score t4 on t3.course_id = t4.course_id left join workinfo t5 on t1.work_id = t5.work_id where t4.student_id = ? and t1.work_status = 1 order by t1.work_time desc limit ?,?';
+    const sql1 = 'select count(*) as total from homework t1 left join teacher t2 on t1.teacher_id = t2.teacher_id join course t3 on t2.teacher_id = t3.teacher_id join score t4 on t3.course_id = t4.course_id left join workinfo t5 on t1.work_id = t5.work_id where t4.student_id = ? and t1.work_status = 1 order by t1.work_time desc';
+    db.query(sql, [student_id,pageNum * pageSize, pageSize], (err, results) => {
         if (err) {
             return res.cc(err.message);
         } else if (results.length < 0) {
@@ -199,10 +212,17 @@ exports.getHomeWork = async (req, res) => {
                 results[i].work_time = tools.formatDate(results[i].work_time, 'YYYY-MM-DD hh:mm:ss');
                 results[i].end_time = tools.formatDate(results[i].end_time, 'YYYY-MM-DD');
             }
-            return res.send({
-                status: 200,
-                message: '查询成功',
-                data: results
+            db.query(sql1,student_id,(err,total)=>{
+                if(err){
+                    return res.cc(err.message);
+                } else {
+                    return res.send({
+                        status: 200,
+                        message: '查询成功',
+                        data: results,
+                        total:total[0]['total'],
+                    })
+                }
             })
         }
     })
@@ -364,8 +384,11 @@ exports.getMyCourse = async (req, res) => {
 }
 
 exports.getExamInfo = async (req, res) => {
-    const sql = 'select * from exam order by time desc';
-    db.query(sql, (err, results) => {
+    let pageNum = parseInt(req.query.pageNum) - 1;
+    let pageSize = parseInt(req.query.pageSize);
+    const sql = 'select * from exam order by time desc limit ?,?';
+    const sql1 = 'select count(*) as total from exam order by time desc';
+    db.query(sql,[pageNum * pageSize, pageSize], (err, results) => {
         if (err) {
             return res.cc(err.message);
         } else if (results.length === 0) {
@@ -376,18 +399,28 @@ exports.getExamInfo = async (req, res) => {
                 i.start_time = tools.formatDate(i.start_time, 'YYYY-MM-DD');
                 i.end_time = tools.formatDate(i.end_time, 'YYYY-MM-DD');
             })
-            return res.send({
-                status: 200,
-                message: '查询成功',
-                data: results,
+            db.query(sql1,(error,total)=>{
+                if(error){
+                    return res.cc(error.message);
+                } else {
+                    return res.send({
+                        status: 200,
+                        message: '查询成功',
+                        data: results,
+                        total:total[0]['total'],
+                    })
+                }
             })
         }
     })
 }
 exports.getStdEva = async (req, res) => {
     const student_id = req.query.student_id;
-    const sql = 'select * from evaluate t1 left join teacher t2 on t1.teacher_id = t2.teacher_id where t1.student_id = ? order by public_time desc';
-    db.query(sql, student_id, (err, results) => {
+    let pageNum = parseInt(req.query.pageNum) - 1;
+    let pageSize = parseInt(req.query.pageSize);
+    const sql = 'select * from evaluate t1 left join teacher t2 on t1.teacher_id = t2.teacher_id where t1.student_id = ? order by public_time desc limit ?,?';
+    const sql1 = 'select count(*) as total from evaluate t1 left join teacher t2 on t1.teacher_id = t2.teacher_id where t1.student_id = ? order by public_time desc';
+    db.query(sql, [student_id,pageNum * pageSize, pageSize], (err, results) => {
         if (err) {
             return res.cc(err.message);
         } else if (results.length <= 0) {
@@ -397,10 +430,17 @@ exports.getStdEva = async (req, res) => {
             results.map(item => {
                 item.public_time = tools.formatDate(item.public_time, 'YYYY年MM月DD日');
             })
-            return res.send({
-                status: 200,
-                message: '查询成功',
-                data: results,
+            db.query(sql1,student_id,(err,total)=>{
+                if(err){
+                    return res.cc(err.message);
+                } else {
+                    return res.send({
+                        status: 200,
+                        message: '查询成功',
+                        data: results,
+                        total:total[0]['total'],
+                    })
+                }
             })
         }
     })
@@ -408,8 +448,9 @@ exports.getStdEva = async (req, res) => {
 
 exports.getChildrenInfo = async (req, res) => {
     const student_id = req.query.student_id;
-    const sql = 'select t1.id,t1.work_pic,t1.work_content,t1.time,t2.work_name,t2.work_details,t2.work_time,t2.end_time,t3.teacher_name,t4.course_name from workinfo t1 join homework t2 on t1.work_id = t2.work_id join teacher t3 on t2.teacher_id = t3.teacher_id join course t4 on t3.teacher_id = t4.teacher_id where t1.student_id = ? order by time desc';
+    const sql = 'select t1.id,t1.work_pic,t1.work_content,t1.time,t2.work_name,t2.work_details,t2.work_time,t2.end_time,t3.teacher_name,t4.course_name,t1.stars,t1.eva_content from workinfo t1 join homework t2 on t1.work_id = t2.work_id join teacher t3 on t2.teacher_id = t3.teacher_id join course t4 on t3.teacher_id = t4.teacher_id where t1.student_id = ? order by time desc';
     const sql1 = 'select * from evaluate t1 right join teacher t2 on t1.teacher_id = t2.teacher_id where student_id = ? order by public_time desc';
+    const sql2 = 'select * from exam order by time desc';
     db.query(sql, student_id, (err, results1) => {
         if (err) {
             return res.cc(err.message);
@@ -425,21 +466,35 @@ exports.getChildrenInfo = async (req, res) => {
                     item.work_pic = item.work_pic.split(',');
                 }
             })
-            db.query(sql1, student_id, (err, result2) => {
-                if (err) {
-                    return res.cc(err.message);
-                } else if (results1.length <= 0) {
+            db.query(sql1, student_id, (err2, result2) => {
+                if (err2) {
+                    return res.cc(err2.message);
+                } else if (result2.length <= 0) {
                     return res.cc('查询失败', 400);
                 } else {
                     result2 = JSON.parse(JSON.stringify(result2));
                     result2.map(item => {
                         item.public_time = tools.formatDate(item.public_time, 'YYYY-MM-DD hh:mm:ss');
                     })
-                    return res.send({
-                        status: 200,
-                        message: '查询成功',
-                        workList: results1,
-                        evaList: result2,
+                    db.query(sql2,(err3,result3)=>{
+                        if(err3){
+                            return res.cc(err3.message);
+                        } else if(result3.length <= 0){
+                            return res.cc('查询失败',400);
+                        } else {
+                            result3 = JSON.parse(JSON.stringify(result3));
+                            result3.map(item =>{
+                                item.start_time = tools.formatDate(item.start_time,'YYYY-MM-DD');
+                                item.end_time = tools.formatDate(item.end_time,'YYYY-MM-DD');
+                            })
+                            return res.send({
+                                status: 200,
+                                message: '查询成功',
+                                workList: results1,
+                                evaList: result2,
+                                examList:result3,
+                            })
+                        }
                     })
                 }
             })

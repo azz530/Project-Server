@@ -9,9 +9,12 @@ router.put('/changeStdInfo',teacher.changeStdInfo);
 
 router.post('/addHomeWork',teacher.addHomeWork);
 router.get('/getHomeWork',teacher.getHomeWork);
+router.get('/getFinishStd',teacher.getFinishStd);
 router.put('/changeHomeWork',teacher.changeHomeWork);
 router.put('/commitHomeWork',teacher.commitHomeWork);
 router.delete('/delHomeWork',teacher.delHomeWork);
+router.get('/getStdHWorkInfo',teacher.getStdHWorkInfo);
+router.post('/evaStdHWork',teacher.evaStdHWork);
 
 
 router.get('/getStdScore',teacher.getStdScore);

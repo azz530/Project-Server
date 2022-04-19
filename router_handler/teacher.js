@@ -213,6 +213,50 @@ exports.getHomeWork = (req, res) => {
         }
     })
 }
+exports.getFinishStd = (req,res) =>{
+    const work_id = req.query.work_id;
+    const sql = 'select t1.student_id,t1.student_name,t1.sex,t2.class_name,t3.eva_status from student t1 join class t2 on t1.class_id = t2.class_id join workinfo t3 on t1.student_id = t3.student_id where t3.work_id = ?';
+    db.query(sql,work_id,(err,results)=>{
+        if(err){
+            return res.cc(err.message);
+        } else if(results.length<=0){
+            return res.cc('暂无学生',400);
+        } else {
+            results = JSON.parse(JSON.stringify(results));
+            results.map(item=>{
+                if(item.eva_status === 1){
+                    item.eva_status = '已批改';
+                } else {
+                    item.eva_status = '未批改';
+                }
+            })
+            return res.send({
+                status:200,
+                message:'查询成功',
+                data:results,
+            })
+        }
+    })
+}
+exports.getStdHWorkInfo = (req,res) =>{
+    const work_id = req.query.work_id;
+    const student_id = req.query.student_id;
+    const sql = 'select work_pic,work_content,stars,eva_content from workinfo where work_id =? and student_id =?';
+    db.query(sql,[work_id,student_id],(err,result)=>{
+        if(err){
+            return res.cc(err.message);
+        } else if(result.length<=0){
+            return res.cc('查询失败',400);
+        } else {
+            result = JSON.parse(JSON.stringify(result));
+            return res.send({
+                status:200,
+                message:'查询成功',
+                data:result[0],
+            })
+        }
+    })
+}
 exports.changeHomeWork = (req, res) => {
     let work_id = req.body.work_id;
     const changeInfo = {
@@ -276,6 +320,25 @@ exports.delHomeWork = (req, res) => {
             return res.cc('删除失败', 400);
         } else {
             return res.cc('删除成功', 200);
+        }
+    })
+}
+exports.evaStdHWork = (req,res) =>{
+    const work_id = parseInt(req.query.work_id);
+    const student_id = parseInt(req.query.student_id);
+    const changeInfo = {
+        stars:parseInt(req.body.stars),
+        eva_content:req.body.eva_content,
+        eva_status:1,
+    };
+    const sql = 'update workinfo set ? where work_id =? and student_id =?';
+    db.query(sql,[changeInfo,work_id,student_id],(err,result)=>{
+        if(err){
+            return res.cc(err.message);
+        } else if(result.affectedRows !== 1){
+            return res.cc('修改失败',400);
+        } else {
+            return res.cc('修改成功',200);
         }
     })
 }
