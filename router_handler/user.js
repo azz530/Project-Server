@@ -174,13 +174,13 @@ exports.forgetPsw = async(req,res)=>{
     const identity = req.body.identity;
     const username = req.body.username;
     const password = req.body.password;
-    const newPassword = bcryptjs.hashSync(password,10);
+    const newPassword = bcryptjs.hashSync(password,10);//对新密码做加密
     const sql = 'select * from users where username = ? and identity =? and identity_id =?';
     const sql1 = 'select * from users where username = ? and identity =?';
     const sql3 = 'update users set password =? where username =?';
-    if(identity === '学生' || identity === '老师'){
+    if(identity === '学生' || identity === '老师'){//身份为学生或者老师的情况
         const identity_id = parseInt(req.body.identity_id);
-        db.query(sql,[username,identity,identity_id],(err1,result1)=>{
+        db.query(sql,[username,identity,identity_id],(err1,result1)=>{//查询数据库当前用户名的身份和身份id是否正确
             if(err1){
                 return res.cc(err1.message);
             } else if(result1.length<=0){
@@ -197,7 +197,7 @@ exports.forgetPsw = async(req,res)=>{
                 })
             }
         })
-    } else {
+    } else {//家长
         db.query(sql1,[username,identity],(err1,result1)=>{
             if(err1){
                 return res.cc(err1.message);

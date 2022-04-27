@@ -92,8 +92,8 @@ exports.addStudent = (req, res) => {
 exports.searchStd = (req, res) => {
     let reg = /^\d{6,10}$/;
     const str = req.query.str;
-    const sql = 'select*from student where student_id = ?';
-    const sql1 = "select *from student where student_name like ?";
+    const sql = 'select * from student join class on student.class_id = class.class_id where student_id = ?';
+    const sql1 = "select *from student join class on student.class_id = class.class_id where student_name like ?";
     if (reg.test(str)) {
         let student_id = parseInt(str);
         db.query(sql, student_id, (err, results) => {
@@ -461,31 +461,31 @@ exports.getTeacher = (req, res) => {
 }
 exports.addCourseStd = (req, res) => {
     const course_id = parseInt(req.query.course_id);
-    const list = req.body;
+    const list = req.body;//前端传过来的选中的学生id数组
     const sql = 'select student_id from score where course_id = ?';
     const sql1 = 'insert into score (student_id,course_id) values ?';
     const sql2 = "delete from score where student_id in (?) and course_id = ?";
-    db.query(sql, course_id, (err, results) => {
+    db.query(sql, course_id, (err, results) => {//查询数据库当前课程中的学生学号
         if (err) {
             return res.cc(err.message);
         } else {
             results = JSON.parse(JSON.stringify(results));
-            let oldArr = [];
+            let oldArr = [];//数据库当中当前课程的学号数组
             results.map(item => {
                 oldArr.push(item.student_id);
             })
-            let delArr = oldArr.filter(item => {
+            let delArr = oldArr.filter(item => {//需要从当前课程中剔除的学生数组
                 if (!list.includes(item)) return item;
             })
             if (list.length > 0) {
-                let newArr = list.filter(item => {
+                let newArr = list.filter(item => {//将前端传来的学号数组与数据库当中的学号数组做对比，如果数据库中存在该学号则跳过，不存在则存入newArr
                     if (!oldArr.includes(item)) return item;
                 })
-                let info = [];
+                let info = [];//将要添加入数据库的数据转换为二维数组格式[[学号,课程号],[学号,课程号]]
                 newArr.map(item => {
                     info.push([item, course_id]);
                 })
-                if (delArr.length > 0 && info.length <= 0) {
+                if (delArr.length > 0 && info.length <= 0) {//该情况是删除已在该课程的学生信息
                     const delInfo = [];
                     delArr.map(item => {
                         delInfo.push(item.toString());
@@ -499,7 +499,7 @@ exports.addCourseStd = (req, res) => {
                             return res.cc('删除成功', 200);
                         }
                     })
-                } else if (delArr.length > 0 && info.length > 0) {
+                } else if (delArr.length > 0 && info.length > 0) {//删除该课程的学生信息和添加新的学生信息
                     const delInfo = [];
                     delArr.map(item => {
                         delInfo.push(item.toString());
@@ -521,7 +521,7 @@ exports.addCourseStd = (req, res) => {
                             })
                         }
                     })
-                } else {
+                } else {//只添加学生信息
                     db.query(sql1, [info], (error, result) => {
                         if (error) {
                             return res.cc(error.message);
@@ -535,8 +535,6 @@ exports.addCourseStd = (req, res) => {
             } else {
                 return res.cc('修改失败', 400);
             }
-
-
         }
     })
 }
@@ -603,7 +601,7 @@ exports.getClassStd = (req, res) => {
                     studentInfo = JSON.parse(JSON.stringify(studentInfo));
                     const result = classInfo.map((i) => {
                         const obj = { ...i };
-                        const childrenArr = studentInfo.filter(item => item.class_id === i.class_id);
+                        const childrenArr = studentInfo.filter(item => item.class_id === i.class_id);//同一个班级的学生的筛选
                         obj.children = childrenArr;
                         return obj
                     })
@@ -611,7 +609,7 @@ exports.getClassStd = (req, res) => {
                         i.children.map((item) => {
                             item.class_name = item.student_id + ' ' + item.student_name;
                         })
-                    })
+                    })//数据形式修改，前端tree班级展开为学号+姓名
                     return res.send({
                         status: 200,
                         message: '查询成功',
