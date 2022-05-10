@@ -501,3 +501,145 @@ exports.getChildrenInfo = async (req, res) => {
         }
     })
 }
+
+exports.getAllDiscuss = async(req,res)=>{
+    let pageNum = parseInt(req.query.pageNum) - 1;
+    let pageSize = parseInt(req.query.pageSize);
+    const sql = 'select *from discuss order by discuss_time desc limit ?,?';
+    const sql1 = 'select count(*) as total from discuss';
+    db.query(sql,[pageNum*pageSize,pageSize],(err,result)=>{
+        if(err){
+            return res.cc(err.message);
+        } else if(result.length<=0){
+            return res.cc('未查到讨论信息',400);
+        } else {
+            result = JSON.parse(JSON.stringify(result));
+            result.map(item=>{
+                item.discuss_time = tools.formatDate(item.discuss_time,'YYYY-MM-DD HH:mm:ss')
+            })
+            db.query(sql1,(err1,total)=>{
+                if(err1){
+                    return res.cc(err1.message);
+                } else {
+                    return res.send({
+                        status:200,
+                        message:'查询成功',
+                        data:result,
+                        total:total[0]['total'],
+                    })
+                }
+            })
+        }
+    })
+}
+exports.addDiscuss = async(req,res) =>{
+    const DiscussInfo = req.body;
+    DiscussInfo.discuss_time = new Date();
+    const sql = 'insert into discuss set ?';
+    db.query(sql,DiscussInfo,(err,result)=>{
+        if(err){
+            return res.cc(err.message);
+        } else if(result.affectedRows !== 1){
+            return res.cc('新增讨论失败',400);
+        } else {
+            return res.cc('新增讨论成功',200);
+        }
+    })
+}
+
+exports.getDiscussDetails = async(req,res)=>{
+    const discuss_id = req.query.discuss_id;
+    const sql = 'select t1.discuss_id,t1.discuss_title,t1.discuss_tags,t1.discuss_time,t1.discuss_content,t2.username,t2.avatar from discuss t1 left join users t2 on t1.user_id = t2.id where t1.discuss_id = ?'
+    db.query(sql,discuss_id,(err,result)=>{
+        if(err){
+            return res.cc(err.message);
+        } else if(result.length !== 1){
+            return res.cc('查询错误',400);
+        } else {
+            result = JSON.parse(JSON.stringify(result));
+            result[0].discuss_time = tools.formatDate(result[0].discuss_time,'YYYY-MM-DD HH:mm:ss')
+            return res.send({
+                status:200,
+                message:'查询成功',
+                data:result[0],
+            })
+        }
+    })
+}
+exports.getDiscussComments = async(req,res) =>{
+    const discuss_id = req.query.discuss_id;
+    const sql = 'select t1.comments_id,t1.comments_content,t1.comments_time,t3.id,t3.username,t3.avatar from comments t1 join discuss t2 on t1.comments_discussId = t2.discuss_id join users t3 on t1.comments_uid = t3.id where t2.discuss_id = ?'
+    const sql_replay = 'select replay.replay_id,replay.replay_content,replay.replay_time,replay.comments_id,fromUser.id as fromUid,fromUser.username as fromUsername,fromUser.avatar as fromAvatar,toUser.id as toUid,toUser.username as toUsername,toUser.avatar as toAvatar from replay left join comments on replay.comments_id = comments.comments_id left join discuss on comments.comments_discussId = discuss.discuss_id left join users fromUser on replay.from_uid = fromUser.id left join users toUser on replay.to_uid = toUser.id where discuss.discuss_id = ? order by replay.replay_time asc'
+    db.query(sql,discuss_id,(err,result)=>{
+        if(err){
+            return res.cc(err.message);
+        } else if(result.length <= 0){
+            return res.cc('查询错误',400);
+        } else {
+            result = JSON.parse(JSON.stringify(result));
+            db.query(sql_replay,discuss_id,(err1,result1)=>{
+                if(err1){
+                    return res.cc(err1.message)
+                } else {
+                    result1 = JSON.parse(JSON.stringify(result1));
+                    const newResult = result.map(item=>{
+                        item.comments_time = tools.formatDate(item.comments_time,'YYYY-MM-DD HH:mm:ss')
+                        const obj = {...item};
+                        const commentsArr = result1.filter(i => i.comments_id === item.comments_id);
+                        obj.replay = commentsArr;
+                        return obj;
+                    })
+                    newResult.map(item=>{
+                        item.replay.map(i=>{
+                            i.replay_time = tools.formatDate(i.replay_time,'YYYY-MM-DD HH:mm:ss')
+                        })
+                    })
+                    return res.send({
+                        status:200,
+                        message:'查询成功',
+                        data:newResult,
+                    })
+                }
+            })
+        }
+    })
+}
+
+exports.addDiscussComments = async(req,res) =>{
+    const commentsInfo = {
+        comments_content:req.body.comments_content,
+        comments_time:new Date(),
+        comments_uid:req.body.id,
+        comments_discussId:req.body.discuss_id,
+    };
+    const sql = 'insert into comments set ?';
+    db.query(sql,commentsInfo,(err,result)=>{
+        if(err){
+            return res.cc(err.message);
+        } else if(result.affectedRows !== 1){
+            return res.cc('新增评论失败',400);
+        } else {
+            return res.cc('新增评论成功',200);
+        }
+    })
+}
+exports.addReplay = async(req,res) =>{
+    const replayInfo = {
+        comments_id:parseInt(req.body.comments_id),
+        from_uid:parseInt(req.body.from_uid),
+        replay_content:req.body.replay_content,
+        to_uid:parseInt(req.body.to_uid),
+        replay_time:new Date(),
+    };
+    const sql = 'insert into replay set ?';
+    db.query(sql,replayInfo,(err,result)=>{
+        if(err){
+            return res.cc(err.message);
+        } else if(result.affectedRows !== 1){
+            return res.cc('回复失败',400);
+        } else {
+            return res.cc('回复成功',200);
+        }
+    })
+
+}

@@ -11,7 +11,7 @@
  Target Server Version : 80028
  File Encoding         : 65001
 
- Date: 27/04/2022 10:20:20
+ Date: 10/05/2022 16:39:50
 */
 
 SET NAMES utf8mb4;
@@ -27,7 +27,7 @@ CREATE TABLE `activity`  (
   `name` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `actime` datetime NOT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 11 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 12 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of activity
@@ -47,7 +47,7 @@ CREATE TABLE `banner`  (
   `picture` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
   `time` datetime NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 17 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 18 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of banner
@@ -133,6 +133,28 @@ INSERT INTO `class_notice` VALUES (2334556, '哈师大', '啊实打实的撒', '
 INSERT INTO `class_notice` VALUES (2463412, '测试', '下周五将举行测试', '2022-04-01 15:50:10', 1, 2022031101);
 
 -- ----------------------------
+-- Table structure for comments
+-- ----------------------------
+DROP TABLE IF EXISTS `comments`;
+CREATE TABLE `comments`  (
+  `comments_id` int NOT NULL AUTO_INCREMENT,
+  `comments_content` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+  `comments_time` datetime NULL DEFAULT NULL,
+  `comments_uid` int NULL DEFAULT NULL,
+  `comments_discussId` int NULL DEFAULT NULL,
+  PRIMARY KEY (`comments_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of comments
+-- ----------------------------
+INSERT INTO `comments` VALUES (2, '<p>哈哈哈哈</p>', '2022-05-10 12:40:44', 9, 14);
+INSERT INTO `comments` VALUES (3, '<p>我也这么觉得</p>', '2022-05-10 13:23:04', 22, 14);
+INSERT INTO `comments` VALUES (4, '<p>哈哈哈</p>', '2022-05-10 15:38:29', 9, 13);
+INSERT INTO `comments` VALUES (5, '<p>真恶心</p>', '2022-05-10 15:38:57', 22, 13);
+INSERT INTO `comments` VALUES (6, '<p>真有意思</p>', '2022-05-10 16:18:44', 23, 14);
+
+-- ----------------------------
 -- Table structure for course
 -- ----------------------------
 DROP TABLE IF EXISTS `course`;
@@ -159,6 +181,38 @@ INSERT INTO `course` VALUES (1502320, '语文32', '三年级二班语文', 42455
 INSERT INTO `course` VALUES (2022001, '语文2', '二年级语文', 4155152);
 INSERT INTO `course` VALUES (2022002, '数学6', '六年级数学', 2022031103);
 INSERT INTO `course` VALUES (2343534, '英语41', '四年级一班英语课', 2022031103);
+
+-- ----------------------------
+-- Table structure for discuss
+-- ----------------------------
+DROP TABLE IF EXISTS `discuss`;
+CREATE TABLE `discuss`  (
+  `discuss_id` int NOT NULL AUTO_INCREMENT,
+  `discuss_title` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+  `discuss_tags` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+  `discuss_content` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+  `discuss_time` datetime NULL DEFAULT NULL,
+  `user_id` int NULL DEFAULT NULL,
+  PRIMARY KEY (`discuss_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of discuss
+-- ----------------------------
+INSERT INTO `discuss` VALUES (1, '垃圾视频', '健康,安全', '<p>最近孩子老是不爱吃饭，跟孩子沟通之后得知，孩子放学后喜欢到学校的小卖部购买零食吃，一般都是那种五毛钱的。</p>', '2022-05-10 10:02:44', 9);
+INSERT INTO `discuss` VALUES (2, '学习态度', '家庭,松鼠', '<p>孩子学习</p><p>.......</p>', '2022-05-10 10:09:52', 9);
+INSERT INTO `discuss` VALUES (3, '苦难', '松鼠,啊', '<p>顶顶顶</p>', '2022-05-10 10:12:27', 9);
+INSERT INTO `discuss` VALUES (4, '松鼠', '阿萨,达到顶峰', '<p>阿萨阿萨法发</p>', '2022-05-10 10:13:01', 9);
+INSERT INTO `discuss` VALUES (5, '测试', '测试', '<p>阿斯顿顶顶顶</p>', '2022-05-10 10:19:36', 9);
+INSERT INTO `discuss` VALUES (6, '测试2', '陈述事实', '<p>草草草草事实上</p>', '2022-05-10 10:22:23', 9);
+INSERT INTO `discuss` VALUES (7, '测试', '菜单', '<p>啊实打实的</p>', '2022-05-10 10:27:16', 9);
+INSERT INTO `discuss` VALUES (8, '松鼠', 'd,是', '<p>阿松大</p>', '2022-05-10 10:29:03', 9);
+INSERT INTO `discuss` VALUES (9, '测试', '松鼠', '<p>顶顶顶</p>', '2022-05-10 10:30:53', 9);
+INSERT INTO `discuss` VALUES (10, '哈哈哈', '松鼠', '<p>顶顶顶</p>', '2022-05-10 10:31:59', 9);
+INSERT INTO `discuss` VALUES (11, '来来来', '三十四', '<p>顶顶顶</p>', '2022-05-10 10:32:10', 9);
+INSERT INTO `discuss` VALUES (12, '无语', '方法', '<p>啊水水</p>', '2022-05-10 10:32:25', 9);
+INSERT INTO `discuss` VALUES (13, '松鼠', '是', '<p>顶顶顶</p>', '2022-05-10 10:33:09', 9);
+INSERT INTO `discuss` VALUES (14, '游戏', '孩子教育,游戏', '<p>现在游戏变得越来月....</p>', '2022-05-10 10:37:28', 9);
 
 -- ----------------------------
 -- Table structure for evaluate
@@ -256,7 +310,7 @@ CREATE TABLE `notice`  (
   `time` datetime NULL DEFAULT NULL,
   `content` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 14 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of notice
@@ -272,6 +326,30 @@ INSERT INTO `notice` VALUES (10, '公告5', 'http://localhost:3000/1649308222884
 INSERT INTO `notice` VALUES (11, '公告6', 'http://localhost:3000/1649308232333d81549808686e620.jpg', '2022-04-07 13:10:32', '测试');
 INSERT INTO `notice` VALUES (12, '公告7', 'http://localhost:3000/1649308242989824b0efdc8b21d81.jpg', '2022-04-07 13:10:43', '测试');
 INSERT INTO `notice` VALUES (13, '公告8', 'http://localhost:3000/164930825358022.jpg', '2022-04-07 13:10:54', '测试');
+
+-- ----------------------------
+-- Table structure for replay
+-- ----------------------------
+DROP TABLE IF EXISTS `replay`;
+CREATE TABLE `replay`  (
+  `replay_id` int NOT NULL AUTO_INCREMENT,
+  `from_uid` int NULL DEFAULT NULL,
+  `replay_content` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+  `replay_time` datetime NULL DEFAULT NULL,
+  `to_uid` int NULL DEFAULT NULL,
+  `comments_id` int NULL DEFAULT NULL,
+  PRIMARY KEY (`replay_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of replay
+-- ----------------------------
+INSERT INTO `replay` VALUES (2, 22, '你笑啥', '2022-05-10 14:09:42', 9, 2);
+INSERT INTO `replay` VALUES (3, 22, '是吧', '2022-05-10 14:19:18', 22, 3);
+INSERT INTO `replay` VALUES (4, 23, '真无语，你笑个鬼', '2022-05-10 14:57:14', 9, 2);
+INSERT INTO `replay` VALUES (5, 22, '有毒把你', '2022-05-10 15:38:49', 9, 4);
+INSERT INTO `replay` VALUES (6, 22, '打游戏有啥好的，学习才是王道', '2022-05-10 16:19:37', 23, 6);
+INSERT INTO `replay` VALUES (7, 9, '我笑有问题？', '2022-05-10 16:32:57', 22, 2);
 
 -- ----------------------------
 -- Table structure for score
@@ -290,7 +368,7 @@ CREATE TABLE `score`  (
   CONSTRAINT `SidCourse` FOREIGN KEY (`student_id`) REFERENCES `student` (`student_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `ssss` FOREIGN KEY (`exam_id`) REFERENCES `exam` (`exam_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `StdCid` FOREIGN KEY (`course_id`) REFERENCES `course` (`course_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 121 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of score
@@ -377,6 +455,7 @@ INSERT INTO `student` VALUES (4521332, '超萌', '女', '2022-03-08', '阿三打
 INSERT INTO `student` VALUES (5654533, '连连看', '男', '2022-03-14', '阿三打撒', 1);
 INSERT INTO `student` VALUES (16566423, '阿松大', '男', '2022-03-21', '啊倒萨', 1);
 INSERT INTO `student` VALUES (26413235, '花花', '女', '2011-03-22', '翻斗大街翻斗花园2222号', 1);
+INSERT INTO `student` VALUES (32524665, '李崇', '男', '2015-05-12', '广西南宁', 4);
 INSERT INTO `student` VALUES (151231321, '阿雅', '女', '2022-03-16', '阿萨大四女生答案', 1);
 INSERT INTO `student` VALUES (254542323, '小青', '男', '2022-03-15', '哈啥萨达撒', 1);
 INSERT INTO `student` VALUES (553644234, '张天爱', '女', '2013-03-06', '北京市朝阳区', 4);
@@ -438,7 +517,7 @@ CREATE TABLE `users`  (
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `username`(`username`) USING BTREE,
   UNIQUE INDEX `id`(`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 21 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 22 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of users
@@ -455,6 +534,8 @@ INSERT INTO `users` VALUES (18, '酷酷酷', '$2a$10$jnht0I9fjTfUShbgvdT7dugZUBf
 INSERT INTO `users` VALUES (19, '无心', '$2a$10$kA9xDM4LWeNlTUHO7IEA0ebskPpggwyLph7ozFfa6.5XfVjfl1KT2', 'http://localhost:3000/164966322091012.jpg', '学生', '我长大要当宇航员', NULL, '2022-04-17', '广东省广州市增城区', '男', 4521332);
 INSERT INTO `users` VALUES (20, '青青', '$2a$10$dMXPP/VDip1B16Z89SwbheBMxHtFxwpHoeTXew/VD5yMAErO4uaOK', 'http://localhost:3000/164992598805012.jpg', '老师', '我想要个好运气', NULL, '1992-04-16', '广西柳州城中区', '女', 2022031104);
 INSERT INTO `users` VALUES (21, '艾小米', '$2a$10$wHue.itFTUKHFhLdlXtHgu./MI8KKW9b3fEfF82u8VF1f2yWfrTVm', 'http://localhost:3000/164993086036422.jpg', '老师', '听我说谢谢你因为有你世界才美丽', '跑步达人', '1997-05-03', '湖南省长沙市雨花区', '女', 415515);
+INSERT INTO `users` VALUES (22, '测试员1', '$2a$10$s0qmCLly6oINQqPHEH8rFu9twxbGu6RoEDy6CkpzTU0gNRX1GvOeO', 'http://localhost:3000/16521601394301000.jpg', '家长', '打工都是人上人', NULL, '2013-04-30', '广东东莞', '男', NULL);
+INSERT INTO `users` VALUES (23, '测试员2', '$2a$10$DnliAU1AEF8fW8ZqlvdY7.116wFoczGSyOmk.mYQeea2f7IdpLeWW', 'http://localhost:3000/165216580347112.jpg', '家长', NULL, NULL, NULL, NULL, NULL, NULL);
 
 -- ----------------------------
 -- Table structure for video
@@ -465,7 +546,7 @@ CREATE TABLE `video`  (
   `url` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
   `time` datetime NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 30 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 31 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of video

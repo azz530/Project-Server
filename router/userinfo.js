@@ -46,4 +46,13 @@ router.get('/getStdEva',userinfo.getStdEva);
 router.get('/getMyCourse',userinfo.getMyCourse);
 
 router.get('/getChildrenInfo',userinfo.getChildrenInfo);
+router.get('/getAllDiscuss',userinfo.getAllDiscuss);
+router.post('/addDiscuss',userinfo.addDiscuss);
+router.get('/getDiscussDetails',userinfo.getDiscussDetails);
+router.get('/getDiscussComments',userinfo.getDiscussComments);
+router.post('/addDiscussComments',userinfo.addDiscussComments);
+router.post('/addReplay',userinfo.addReplay);
+
+
+
 module.exports = router;
