@@ -23,8 +23,8 @@ exports.getClass = (req, res) => {
 exports.getStudentList = (req, res) => {
     let pageNum = parseInt(req.query.pageNum) - 1;
     let pageSize = parseInt(req.query.pageSize);
-    const sql = 'select t1.student_id,t1.student_name,t1.sex,t1.birthday,t1.address,t2.class_name from student t1 left join class t2 on t1.class_id = t2.class_id limit ?,?';
-    const sql2 = 'select count(*) as total,t1.student_id,t1.student_name,t1.sex,t1.birthday,t1.address,t2.class_name from student t1 left join class t2 on t1.class_id = t2.class_id';
+    const sql = 'select t1.student_id,t1.student_name,t1.sex,t1.birthday,t1.address,t2.class_name from student t1 left join class t2 on t1.class_id = t2.class_id group by t1.student_id limit ?,?';
+    const sql2 = 'select count(*) as total from student t1 left join class t2 on t1.class_id = t2.class_id';
     db.query(sql, [pageNum * pageSize, pageSize], (err, results) => {
         if (err) {
             return res.cc(err.message);
@@ -490,6 +490,7 @@ exports.addCourseStd = (req, res) => {
                     delArr.map(item => {
                         delInfo.push(item.toString());
                     })
+                    console.log(delArr);
                     db.query(sql2, [delInfo, course_id], (err1, result1) => {
                         if (err1) {
                             return res.cc(err1.message);

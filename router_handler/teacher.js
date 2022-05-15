@@ -7,7 +7,7 @@ exports.getStudentListByClass = (req, res) => {
     let pageNum = parseInt(req.query.pageNum) - 1;
     let pageSize = parseInt(req.query.pageSize);
     const allSql = 'select count(*) as total from student t1 left join score t2 on t1.student_id = t2.student_id join course t3 on t2.course_id = t3.course_id join class t4 on t1.class_id = t4.class_id join teacher t5 on t3.teacher_id = t5.teacher_id where t3.teacher_id = ? and t1.class_id=?';
-    const slSql = 'select t1.student_id,t1.student_name,t1.sex,t4.class_name,t1.student_check,t1.birthday,t1.address from student t1 left join score t2 on t1.student_id = t2.student_id join course t3 on t2.course_id = t3.course_id join class t4 on t1.class_id = t4.class_id join teacher t5 on t3.teacher_id = t5.teacher_id where t3.teacher_id = ? and t1.class_id=? limit ?,?';
+    const slSql = 'select t1.student_id,t1.student_name,t1.sex,t4.class_name,t1.birthday,t1.address from student t1 left join score t2 on t1.student_id = t2.student_id join course t3 on t2.course_id = t3.course_id join class t4 on t1.class_id = t4.class_id join teacher t5 on t3.teacher_id = t5.teacher_id where t3.teacher_id = ? and t1.class_id=? limit ?,?';
     db.query(slSql, [teacher_id, class_id, pageNum * pageSize, pageSize], (err, results) => {
         if (err) {
             return res.cc(err.message);
@@ -56,7 +56,7 @@ exports.getStudentList = (req, res) => {
     let pageSize = parseInt(req.query.pageSize);
     const teacher_id = parseInt(req.query.teacher_id);
     const sql1 = 'select count(*) as total from student t1 left join score t2 on t1.student_id = t2.student_id join course t3 on t2.course_id = t3.course_id join class t4 on t1.class_id = t4.class_id join teacher t5 on t3.teacher_id = t5.teacher_id where t3.teacher_id = ?';
-    const slSql = 'select t1.student_id,t1.student_name,t1.sex,t4.class_name,t1.birthday,t1.address from student t1 left join score t2 on t1.student_id = t2.student_id join course t3 on t2.course_id = t3.course_id join class t4 on t1.class_id = t4.class_id join teacher t5 on t3.teacher_id = t5.teacher_id where t3.teacher_id = ? limit ?,?';
+    const slSql = 'select t1.student_id,t1.student_name,t1.sex,t4.class_name,t1.birthday,t1.address from student t1 left join score t2 on t1.student_id = t2.student_id join course t3 on t2.course_id = t3.course_id join class t4 on t1.class_id = t4.class_id join teacher t5 on t3.teacher_id = t5.teacher_id where t3.teacher_id = ? group by t1.student_id limit ?,?';
     db.query(slSql, [teacher_id, pageNum * pageSize, pageSize], (err, results) => {
         if (err) {
             return res.cc(err, 400);
